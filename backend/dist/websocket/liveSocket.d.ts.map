@@ -1,0 +1,1 @@
+{"version":3,"file":"liveSocket.d.ts","sourceRoot":"","sources":["../../src/websocket/liveSocket.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,MAAM,IAAI,UAAU,EAAE,MAAM,MAAM,CAAC;AAC5C,OAAO,EAAE,MAAM,IAAI,YAAY,EAAE,MAAM,WAAW,CAAC;AAKnD;;GAEG;AACH,wBAAgB,mBAAmB,CAAC,UAAU,EAAE,UAAU,EAAE,UAAU,EAAE,MAAM,GAAG,YAAY,CA2B5F;AAED,wBAAgB,KAAK,IAAI,YAAY,CAEpC"}

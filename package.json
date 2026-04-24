@@ -1,0 +1,17 @@
+{
+  "name": "traffic-simulation-project",
+  "version": "1.0.0",
+  "description": "Root configuration to run full stack simultaneously",
+  "private": true,
+  "scripts": {
+    "db:up": "cd postgres-setup && docker-compose up -d",
+    "db:down": "cd postgres-setup && docker-compose down",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "dev": "npm run db:up && concurrently -c \"cyan,magenta\" -n \"BACKEND,FRONTEND\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "stop": "npm run db:down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Traffic Signal Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a; /* Tailwind slate-900 */
+            color: #e2e8f0; /* Tailwind slate-200 */
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        #sim-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        canvas {
+            background-color: #1e293b; /* Tailwind slate-800 */
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            height: auto;
+        }
+        /* Custom scrollbar for Arch enthusiasts */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-800 p-6 shadow-md border-b border-slate-700">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-teal-400 tracking-tight">Intersection Sim v1.0</h1>
+                <p class="text-sm text-slate-400 mt-1">HTML5 Canvas Real-Time Traffic Simulation</p>
+            </div>
+            
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-4 items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-slate-300 font-medium">Traffic Density:</label>
+                    <input type="range" id="spawn-rate" min="20" max="150" value="60" class="w-24 accent-teal-500">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-slate-300 font-medium">Light Duration:</label>
+                    <input type="range" id="light-duration" min="2000" max="10000" value="5000" step="500" class="w-24 accent-teal-500">
+                </div>
+                <button id="toggle-sim" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-md font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 focus:ring-offset-slate-900">
+                    Pause
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Canvas Area -->
+    <main class="flex-grow flex flex-col lg:flex-row items-center justify-center gap-8 p-4">
+        
+        <!-- Status Panel -->
+        <div class="w-full lg:w-64 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col gap-6 order-2 lg:order-1">
+            <h2 class="text-xl font-bold border-b border-slate-600 pb-2">Status Panel</h2>
+            
+            <div class="flex flex-col gap-4">
+                <div class="p-4 rounded-lg bg-slate-900/80 border border-slate-700">
+                    <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">North / South</h3>
+                    <div class="flex items-center gap-3">
+                        <div id="ns-light" class="w-6 h-6 rounded-full bg-slate-700 shadow-inner"></div>
+                        <span id="ns-text" class="font-mono text-lg font-bold text-slate-300">--</span>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-lg bg-slate-900/80 border border-slate-700">
+                    <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">East / West</h3>
+                    <div class="flex items-center gap-3">
+                        <div id="ew-light" class="w-6 h-6 rounded-full bg-slate-700 shadow-inner"></div>
+                        <span id="ew-text" class="font-mono text-lg font-bold text-slate-300">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <div class="text-sm text-slate-400 flex justify-between">
+                    <span>Active Vehicles:</span>
+                    <span id="vehicle-count" class="font-mono font-bold text-teal-400">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Canvas -->
+        <div id="sim-container" class="order-1 lg:order-2 w-full max-w-[800px]">
+            <canvas id="trafficCanvas" width="800" height="800"></canvas>
+        </div>
+    </main>
+
+    <script>
+        // --- Configuration & Constants ---
+        const canvas = document.getElementById('trafficCanvas');
+        const ctx = canvas.getContext('2d');
+        const C_SIZE = 800; // Canvas size
+        const CENTER = C_SIZE / 2;
+        const ROAD_WIDTH = 140; // Total width of a road
+        const LANE_WIDTH = ROAD_WIDTH / 2;
+        
+        // Colors
+        const GRASS_COLOR = '#1e293b';
+        const ROAD_COLOR = '#334155';
+        const MARKING_COLOR = '#cbd5e1';
+        const CAR_COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#ffffff'];
+
+        // Directions enum
+        const DIR = {
+            NORTH: 0, // Moving Up
+            SOUTH: 1, // Moving Down
+            EAST: 2,  // Moving Right
+            WEST: 3   // Moving Left
+        };
+
+        // Light States
+        const LIGHT = {
+            RED: 'red',
+            YELLOW: 'yellow',
+            GREEN: 'green'
+        };
+
+        // --- State Management ---
+        let isRunning = true;
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let vehicles = [];
+
+        // UI Elements
+        const btnToggle = document.getElementById('toggle-sim');
+        const rangeSpawn = document.getElementById('spawn-rate');
+        const rangeLight = document.getElementById('light-duration');
+        const countDisplay = document.getElementById('vehicle-count');
+        const nsLightInd = document.getElementById('ns-light');
+        const ewLightInd = document.getElementById('ew-light');
+        const nsText = document.getElementById('ns-text');
+        const ewText = document.getElementById('ew-text');
+
+        // Traffic Light Controller
+        class TrafficController {
+            constructor() {
+                this.state = 0; // 0: NS Green, 1: NS Yellow, 2: EW Green, 3: EW Yellow
+                this.timer = 0;
+                this.yellowDuration = 2000; // Fixed 2 seconds for yellow
+                
+                this.ns = LIGHT.GREEN;
+                this.ew = LIGHT.RED;
+            }
+
+            update(dt) {
+                this.timer += dt;
+                const greenDuration = parseInt(rangeLight.value);
+
+                if (this.state === 0 && this.timer > greenDuration) {
+                    this.state = 1;
+                    this.timer = 0;
+                    this.ns = LIGHT.YELLOW;
+                } else if (this.state === 1 && this.timer > this.yellowDuration) {
+                    this.state = 2;
+                    this.timer = 0;
+                    this.ns = LIGHT.RED;
+                    this.ew = LIGHT.GREEN;
+                } else if (this.state === 2 && this.timer > greenDuration) {
+                    this.state = 3;
+                    this.timer = 0;
+                    this.ew = LIGHT.YELLOW;
+                } else if (this.state === 3 && this.timer > this.yellowDuration) {
+                    this.state = 0;
+                    this.timer = 0;
+                    this.ew = LIGHT.RED;
+                    this.ns = LIGHT.GREEN;
+                }
+
+                this.updateUI();
+            }
+
+            updateUI() {
+                const getShadow = (color) => `0 0 10px ${color}, inset 0 0 5px rgba(0,0,0,0.5)`;
+                const getColorHex = (l) => l === LIGHT.RED ? '#ef4444' : l === LIGHT.YELLOW ? '#facc15' : '#10b981';
+
+                nsLightInd.style.backgroundColor = getColorHex(this.ns);
+                nsLightInd.style.boxShadow = getShadow(getColorHex(this.ns));
+                nsText.textContent = this.ns.toUpperCase();
+                nsText.style.color = getColorHex(this.ns);
+
+                ewLightInd.style.backgroundColor = getColorHex(this.ew);
+                ewLightInd.style.boxShadow = getShadow(getColorHex(this.ew));
+                ewText.textContent = this.ew.toUpperCase();
+                ewText.style.color = getColorHex(this.ew);
+            }
+
+            getLightForDir(dir) {
+                if (dir === DIR.NORTH || dir === DIR.SOUTH) return this.ns;
+                return this.ew;
+            }
+        }
+
+        const trafficLights = new TrafficController();
+
+        // Vehicle Class
+        class Vehicle {
+            constructor(dir) {
+                this.dir = dir;
+                this.width = 24;
+                this.height = 44;
+                this.color = CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
+                this.maxSpeed = 3 + Math.random() * 1.5; // Random speeds for realism
+                this.speed = this.maxSpeed;
+                this.acceleration = 0.15;
+                this.deceleration = 0.3;
+                this.gap = 15; // Minimum gap between cars
+                this.id = Math.random().toString(36).substr(2, 9);
+                
+                this.setupInitialPosition();
+            }
+
+            setupInitialPosition() {
+                // Lane center offsets
+                const offset = LANE_WIDTH / 2;
+
+                switch (this.dir) {
+                    case DIR.NORTH: // Moving Up (starts bottom, right lane)
+                        this.x = CENTER + offset;
+                        this.y = C_SIZE + this.height;
+                        this.stopLine = CENTER + ROAD_WIDTH / 2 + 10;
+                        break;
+                    case DIR.SOUTH: // Moving Down (starts top, left lane)
+                        this.x = CENTER - offset;
+                        this.y = -this.height;
+                        this.stopLine = CENTER - ROAD_WIDTH / 2 - 10;
+                        break;
+                    case DIR.EAST: // Moving Right (starts left, bottom lane)
+                        this.x = -this.height;
+                        this.y = CENTER + offset;
+                        this.stopLine = CENTER - ROAD_WIDTH / 2 - 10;
+                        break;
+                    case DIR.WEST: // Moving Left (starts right, top lane)
+                        this.x = C_SIZE + this.height;
+                        this.y = CENTER - offset;
+                        this.stopLine = CENTER + ROAD_WIDTH / 2 + 10;
+                        break;
+                }
+            }
+
+            update(dt) {
+                let targetSpeed = this.maxSpeed;
+                let brakingDist = 80; // Distance to start braking for light
+                
+                // 1. Check Traffic Light
+                let light = trafficLights.getLightForDir(this.dir);
+                let distToStopLine = 0;
+                let pastStopLine = false;
+
+                switch (this.dir) {
+                    case DIR.NORTH:
+                        distToStopLine = this.y - (this.height/2) - this.stopLine;
+                        pastStopLine = this.y < this.stopLine;
+                        break;
+                    case DIR.SOUTH:
+                        distToStopLine = this.stopLine - (this.y + this.height/2);
+                        pastStopLine = this.y > this.stopLine;
+                        break;
+                    case DIR.EAST:
+                        distToStopLine = this.stopLine - (this.x + this.height/2);
+                        pastStopLine = this.x > this.stopLine;
+                        break;
+                    case DIR.WEST:
+                        distToStopLine = this.x - (this.height/2) - this.stopLine;
+                        pastStopLine = this.x < this.stopLine;
+                        break;
+                }
+
+                // If light is red/yellow and we haven't crossed the line yet
+                if ((light === LIGHT.RED || light === LIGHT.YELLOW) && !pastStopLine && distToStopLine >= 0) {
+                    if (distToStopLine < brakingDist) {
+                        // Smooth stopping based on distance
+                        targetSpeed = Math.max(0, (distToStopLine / brakingDist) * this.maxSpeed);
+                        // Hard stop if very close
+                        if (distToStopLine < 5) targetSpeed = 0; 
+                    }
+                }
+
+                // 2. Collision Avoidance (Check car ahead)
+                let distToCarAhead = Infinity;
+                vehicles.forEach(other => {
+                    if (other.id === this.id || other.dir !== this.dir) return;
+
+                    let d = Infinity;
+                    switch (this.dir) {
+                        case DIR.NORTH:
+                            if (other.y < this.y) d = this.y - other.y - this.height;
+                            break;
+                        case DIR.SOUTH:
+                            if (other.y > this.y) d = other.y - this.y - this.height;
+                            break;
+                        case DIR.EAST:
+                            if (other.x > this.x) d = other.x - this.x - this.height;
+                            break;
+                        case DIR.WEST:
+                            if (other.x < this.x) d = this.x - other.x - this.height;
+                            break;
+                    }
+
+                    if (d > 0 && d < distToCarAhead) {
+                        distToCarAhead = d;
+                    }
+                });
+
+                if (distToCarAhead < brakingDist) {
+                    let safeSpeed = Math.max(0, ((distToCarAhead - this.gap) / brakingDist) * this.maxSpeed);
+                    targetSpeed = Math.min(targetSpeed, safeSpeed);
+                }
+
+                // 3. Apply Acceleration/Deceleration
+                if (this.speed < targetSpeed) {
+                    this.speed = Math.min(targetSpeed, this.speed + this.acceleration);
+                } else if (this.speed > targetSpeed) {
+                    this.speed = Math.max(targetSpeed, this.speed - this.deceleration);
+                }
+
+                // Ensure complete stop if speed is extremely low
+                if (this.speed < 0.05) this.speed = 0;
+
+                // 4. Move
+                // Note: dt is handled by fixed max speeds per frame, but ideally multiply by dt ratio. 
+                // Using 60fps base speed assumption.
+                let speedScale = (dt / 16.66); // Normalize to 60fps
+                let moveAmount = this.speed * speedScale;
+
+                switch (this.dir) {
+                    case DIR.NORTH: this.y -= moveAmount; break;
+                    case DIR.SOUTH: this.y += moveAmount; break;
+                    case DIR.EAST:  this.x += moveAmount; break;
+                    case DIR.WEST:  this.x -= moveAmount; break;
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Rotate based on direction
+                switch (this.dir) {
+                    case DIR.EAST: ctx.rotate(Math.PI / 2); break;
+                    case DIR.WEST: ctx.rotate(-Math.PI / 2); break;
+                    case DIR.NORTH: break; // default
+                    case DIR.SOUTH: ctx.rotate(Math.PI); break;
+                }
+
+                // Draw Car Body
+                ctx.fillStyle = this.color;
+                // Add a subtle shadow
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetY = 4;
+                
+                ctx.beginPath();
+                ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 6);
+                ctx.fill();
+
+                // Reset shadow for details
+                ctx.shadowColor = 'transparent';
+
+                // Windshield
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.roundRect(-this.width/2 + 3, -this.height/2 + 8, this.width - 6, 8, 2);
+                ctx.fill();
+                
+                // Rear window
+                ctx.beginPath();
+                ctx.roundRect(-this.width/2 + 3, this.height/2 - 12, this.width - 6, 6, 2);
+                ctx.fill();
+
+                // Headlights
+                if (this.dir === DIR.NORTH || this.dir === DIR.SOUTH || this.dir === DIR.EAST || this.dir === DIR.WEST) { // Just always draw them, logic handles rotation
+                    ctx.fillStyle = '#fef08a'; // Yellowish light
+                    ctx.beginPath(); ctx.arc(-this.width/2 + 5, -this.height/2 + 2, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(this.width/2 - 5, -this.height/2 + 2, 3, 0, Math.PI*2); ctx.fill();
+                    
+                    // Taillights
+                    ctx.fillStyle = '#ef4444'; // Red
+                    ctx.beginPath(); ctx.arc(-this.width/2 + 5, this.height/2 - 2, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(this.width/2 - 5, this.height/2 - 2, 3, 0, Math.PI*2); ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            isOutOfBounds() {
+                return (this.x < -100 || this.x > C_SIZE + 100 || this.y < -100 || this.y > C_SIZE + 100);
+            }
+        }
+
+        // --- Drawing Helpers ---
+
+        function drawEnvironment() {
+            // Background is handled by canvas style, but we fill it anyway
+            ctx.fillStyle = GRASS_COLOR;
+            ctx.fillRect(0, 0, C_SIZE, C_SIZE);
+
+            // Draw Roads (Cross)
+            ctx.fillStyle = ROAD_COLOR;
+            // Vertical Road
+            ctx.fillRect(CENTER - ROAD_WIDTH/2, 0, ROAD_WIDTH, C_SIZE);
+            // Horizontal Road
+            ctx.fillRect(0, CENTER - ROAD_WIDTH/2, C_SIZE, ROAD_WIDTH);
+
+            // Intersection Center Box (slightly darker or smooth)
+            ctx.fillStyle = '#2f3b4e';
+            ctx.fillRect(CENTER - ROAD_WIDTH/2, CENTER - ROAD_WIDTH/2, ROAD_WIDTH, ROAD_WIDTH);
+
+            // Draw Markings
+            ctx.strokeStyle = MARKING_COLOR;
+            ctx.lineWidth = 4;
+            
+            // Vertical Dashed Center Line
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath();
+            ctx.moveTo(CENTER, 0); ctx.lineTo(CENTER, CENTER - ROAD_WIDTH/2);
+            ctx.moveTo(CENTER, CENTER + ROAD_WIDTH/2); ctx.lineTo(CENTER, C_SIZE);
+            ctx.stroke();
+
+            // Horizontal Dashed Center Line
+            ctx.beginPath();
+            ctx.moveTo(0, CENTER); ctx.lineTo(CENTER - ROAD_WIDTH/2, CENTER);
+            ctx.moveTo(CENTER + ROAD_WIDTH/2, CENTER); ctx.lineTo(C_SIZE, CENTER);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // Stop Lines
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#ffffff';
+            // Northbound stop (bottom, right lane)
+            ctx.beginPath(); ctx.moveTo(CENTER, CENTER + ROAD_WIDTH/2); ctx.lineTo(CENTER + ROAD_WIDTH/2, CENTER + ROAD_WIDTH/2); ctx.stroke();
+            // Southbound stop (top, left lane)
+            ctx.beginPath(); ctx.moveTo(CENTER - ROAD_WIDTH/2, CENTER - ROAD_WIDTH/2); ctx.lineTo(CENTER, CENTER - ROAD_WIDTH/2); ctx.stroke();
+            // Eastbound stop (left, bottom lane)
+            ctx.beginPath(); ctx.moveTo(CENTER - ROAD_WIDTH/2, CENTER); ctx.lineTo(CENTER - ROAD_WIDTH/2, CENTER + ROAD_WIDTH/2); ctx.stroke();
+            // Westbound stop (right, top lane)
+            ctx.beginPath(); ctx.moveTo(CENTER + ROAD_WIDTH/2, CENTER - ROAD_WIDTH/2); ctx.lineTo(CENTER + ROAD_WIDTH/2, CENTER); ctx.stroke();
+        }
+
+        function drawTrafficLightsPhysical() {
+            const size = 20;
+            const padding = 30; // distance from intersection corner
+            
+            // Helper to draw a single physical light pole
+            const drawPole = (x, y, rotation, lightColor) => {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotation);
+                
+                // Pole box
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(-10, -25, 20, 50);
+                
+                // Lights
+                const drawBulb = (oy, c, isActive) => {
+                    ctx.beginPath();
+                    ctx.arc(0, oy, 6, 0, Math.PI*2);
+                    ctx.fillStyle = isActive ? c : '#334155';
+                    ctx.fill();
+                    if(isActive) {
+                        ctx.shadowColor = c;
+                        ctx.shadowBlur = 10;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    }
+                };
+
+                drawBulb(-15, '#ef4444', lightColor === LIGHT.RED);
+                drawBulb(0, '#facc15', lightColor === LIGHT.YELLOW);
+                drawBulb(15, '#10b981', lightColor === LIGHT.GREEN);
+                
+                ctx.restore();
+            };
+
+            const cornerOffset = ROAD_WIDTH/2 + padding;
+
+            // NW Corner (Controls Southbound, facing North)
+            drawPole(CENTER - cornerOffset, CENTER - cornerOffset, Math.PI/2, trafficLights.ns);
+            // SE Corner (Controls Northbound, facing South)
+            drawPole(CENTER + cornerOffset, CENTER + cornerOffset, -Math.PI/2, trafficLights.ns);
+            
+            // SW Corner (Controls Eastbound, facing West)
+            drawPole(CENTER - cornerOffset, CENTER + cornerOffset, 0, trafficLights.ew);
+            // NE Corner (Controls Westbound, facing East)
+            drawPole(CENTER + cornerOffset, CENTER - cornerOffset, Math.PI, trafficLights.ew);
+        }
+
+
+        // --- Simulation Loop ---
+
+        function spawnVehicle() {
+            if (vehicles.length > 50) return; // Cap max vehicles
+            
+            // Random direction
+            const dirKeys = Object.keys(DIR);
+            const randomDir = DIR[dirKeys[Math.floor(Math.random() * dirKeys.length)]];
+            
+            // Check if spawn area is clear
+            let isClear = true;
+            let checkDist = 80; // Required clear distance at spawn
+
+            for (let v of vehicles) {
+                if (v.dir === randomDir) {
+                    let d = Infinity;
+                    switch (randomDir) {
+                        case DIR.NORTH: d = C_SIZE - v.y; break;
+                        case DIR.SOUTH: d = v.y; break;
+                        case DIR.EAST: d = v.x; break;
+                        case DIR.WEST: d = C_SIZE - v.x; break;
+                    }
+                    if (d < checkDist) {
+                        isClear = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isClear) {
+                vehicles.push(new Vehicle(randomDir));
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (!isRunning) {
+                lastTime = timestamp;
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            if (!lastTime) lastTime = timestamp;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // Update Logic
+            trafficLights.update(dt);
+            
+            // Spawn logic based on range slider (higher value = faster spawn)
+            // Value is 20-150. Inverse for interval map: higher value -> lower interval.
+            const spawnRateVal = parseInt(rangeSpawn.value);
+            const spawnInterval = 3000 - (spawnRateVal * 15); // Adjust multiplier for feel
+            
+            spawnTimer += dt;
+            if (spawnTimer > spawnInterval) {
+                spawnVehicle();
+                spawnTimer = 0;
+            }
+
+            // Update Vehicles
+            for (let i = vehicles.length - 1; i >= 0; i--) {
+                vehicles[i].update(dt);
+                if (vehicles[i].isOutOfBounds()) {
+                    vehicles.splice(i, 1);
+                }
+            }
+
+            // Draw
+            ctx.clearRect(0, 0, C_SIZE, C_SIZE);
+            drawEnvironment();
+            drawTrafficLightsPhysical();
+            
+            // Sort by Y for slight depth illusion (though top-down)
+            vehicles.sort((a,b) => a.y - b.y);
+            vehicles.forEach(v => v.draw(ctx));
+
+            // Update UI count
+            countDisplay.textContent = vehicles.length;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Event Listeners ---
+        btnToggle.addEventListener('click', () => {
+            isRunning = !isRunning;
+            btnToggle.textContent = isRunning ? 'Pause' : 'Resume';
+            btnToggle.classList.toggle('bg-teal-600', isRunning);
+            btnToggle.classList.toggle('bg-amber-600', !isRunning);
+            btnToggle.classList.toggle('hover:bg-teal-500', isRunning);
+            btnToggle.classList.toggle('hover:bg-amber-500', !isRunning);
+        });
+
+        // Initialize UI before loop starts
+        trafficLights.updateUI();
+        
+        // Start loop
+        requestAnimationFrame(gameLoop);
+
+    </script>
+</body>
+</html>
