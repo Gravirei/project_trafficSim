@@ -1,0 +1,120 @@
+:root {
+  --font-fira-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-fira-code: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #64748b;
+  
+  --accent-primary: #2563eb;
+  --accent-secondary: #0284c7;
+  --cta: #d97706;
+  
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+
+  --border: #e2e8f0;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-fira-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.glass-panel:hover {
+  background: var(--bg-card-hover);
+  border-color: #cbd5e1;
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+/* UI/UX Pro Max rules applied */
+button, .interactive {
+  transition: all 0.2s ease;
+}
+
+/* Base button styles */
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background-color: var(--accent-secondary);
+}
+
+.btn-cta {
+  background-color: var(--cta);
+  color: #0f172a;
+}
+.btn-cta:hover {
+  background-color: #fbbf24;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.btn-outline:hover {
+  border-color: var(--text-secondary);
+  background-color: rgba(255,255,255,0.05);
+}
+
+.metrics-value {
+  font-family: var(--font-fira-code), monospace;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.metrics-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
