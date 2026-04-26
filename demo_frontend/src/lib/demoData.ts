@@ -70,12 +70,10 @@ export function createDemoTick(tick = demoStatus.currentTick): TickPayload {
     const state = signalState(signal, tick, index);
     const laneFactor = 0.86 + index * 0.09;
     const arrivalRate = Number((demoStatus.arrivalRate * laneFactor).toFixed(2));
-    const wave = Math.abs(Math.sin((tick + index * 11) / 8));
-    const pressure = state === "GREEN" ? 3 + wave * 8 : state === "YELLOW" ? 8 + wave * 10 : 13 + wave * 14;
-    const queueLength = Math.max(0, Math.round(pressure));
+    const queueLength = Math.floor(Math.random() * 20);
     const utilization = Math.min(135, Math.round((arrivalRate / 0.9) * 72 + queueLength * 2.1));
-    const theoreticalLq = Number(Math.max(0, queueLength * 0.74 + wave * 2).toFixed(2));
-    const avgWaitTime = Number(Math.max(0.8, queueLength * 1.35 + wave * 3).toFixed(2));
+    const theoreticalLq = Number(Math.max(0, queueLength * 0.74).toFixed(2));
+    const avgWaitTime = Number(Math.max(0.8, queueLength * 1.35).toFixed(2));
 
     return {
       signalId: signal.id,
