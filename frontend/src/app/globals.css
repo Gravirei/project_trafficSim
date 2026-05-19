@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --font-fira-sans: 'Fira Sans', sans-serif;
+  --font-fira-code: 'Fira Code', monospace;
+  
+  --bg-primary: #050505;
+  --bg-card: #0f1115;
+  --bg-card-hover: #1a1d24;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  
+  --accent-primary: #1e40af;
+  --accent-secondary: #3b82f6;
+  --cta: #f59e0b;
+  
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+
+  --border: #1e293b;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-fira-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Glassmorphism utility for cards */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s ease;
+}
+
+.glass-panel:hover {
+  background: var(--bg-card-hover);
+  border-color: #334155;
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+/* UI/UX Pro Max rules applied */
+button, .interactive {
+  transition: all 0.2s ease;
+}
+
+/* Base button styles */
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background-color: var(--accent-secondary);
+}
+
+.btn-cta {
+  background-color: var(--cta);
+  color: #0f172a;
+}
+.btn-cta:hover {
+  background-color: #fbbf24;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.btn-outline:hover {
+  border-color: var(--text-secondary);
+  background-color: rgba(255,255,255,0.05);
+}
+
+.metrics-value {
+  font-family: var(--font-fira-code), monospace;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.metrics-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
