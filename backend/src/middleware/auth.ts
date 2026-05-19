@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_for_dev_only';
+function getJwtSecret(): string {
+    return process.env.JWT_SECRET || 'secret_key_for_dev_only';
+}
 
 export interface TokenPayload {
     id: number;
@@ -27,7 +29,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+        const decoded = jwt.verify(token, getJwtSecret()) as TokenPayload;
         req.user = decoded;
         next();
     } catch (err) {

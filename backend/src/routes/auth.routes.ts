@@ -5,7 +5,9 @@ import { UserModel } from '../models/user.model';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_for_dev_only';
+function getJwtSecret(): string {
+    return process.env.JWT_SECRET || 'secret_key_for_dev_only';
+}
 const JWT_EXPIRES_IN = '24h';
 
 // POST /api/auth/login
@@ -35,7 +37,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         }
 
         const payload = { id: user.id, username: user.username, role: user.role };
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        const token = jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRES_IN });
 
         res.json({ token, user: payload });
     } catch (err: any) {

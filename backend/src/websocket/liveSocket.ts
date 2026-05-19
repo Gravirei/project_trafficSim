@@ -26,8 +26,8 @@ export function initializeWebSocket(httpServer: HttpServer, corsOrigin: string):
         
         try {
             const jwt = require('jsonwebtoken');
-            const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_for_dev_only';
-            const decoded = jwt.verify(token, JWT_SECRET);
+            const secret = process.env.JWT_SECRET || 'secret_key_for_dev_only';
+            const decoded = jwt.verify(token, secret);
             socket.data.user = decoded;
             next();
         } catch (err) {
