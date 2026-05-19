@@ -7,8 +7,8 @@ VALUES
     ('West Lane',  30, 30, 5)
 ON CONFLICT (name) DO NOTHING;
 
--- Default admin: username=admin, password=admin123
+-- Default admin: username=admin, password=Tr4ff1cS1m@2026!
 INSERT INTO users (username, email, password_hash, role) VALUES
-    ('admin', 'admin_auth@gravirei.com', '$2a$10$22n/mR./rYw4lMUBW.oONea4wA6W6JtN0cO4489rP7/q6bQ0TzKMC', 'ADMIN')
+    ('admin', 'admin_auth@gravirei.com', '$2b$10$tIJVonuhwAbEmYR6W8qe/eSSReFJpCxvLbum.n5Oq7/MWgDDxFj2S', 'ADMIN')
 ON CONFLICT (username) DO NOTHING;
 
