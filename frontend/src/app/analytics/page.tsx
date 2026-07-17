@@ -64,7 +64,7 @@ export default function AnalyticsPage() {
 
       {/* Aggregate Metric Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '3px solid var(--accent-blue)' }}>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem',  }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
             TOTAL RECORDS LOGGED
           </div>
@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '3px solid var(--accent-red)' }}>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem',  }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
             PEAK QUEUE LENGTH
           </div>
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '3px solid var(--accent-yellow)' }}>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem',  }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
             GLOBAL AVERAGE WAIT (Wq)
           </div>
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '3px solid var(--accent-green)' }}>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem',  }}>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
             SYSTEM-WIDE UTILIZATION (ρ)
           </div>
