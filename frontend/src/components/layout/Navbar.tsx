@@ -9,7 +9,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
 
   const links = [
-    { name: 'Dashboard', path: '/' },
+    { name: 'Dashboard', path: '/dashboard' },
     { name: 'History', path: '/history' },
     { name: 'Config', path: '/config' },
     { name: 'Analytics', path: '/analytics' },

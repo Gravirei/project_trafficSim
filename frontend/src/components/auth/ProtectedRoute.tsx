@@ -17,7 +17,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         if (!loading && !user) {
             router.push('/login');
         } else if (!loading && user && requiredRole === 'ADMIN' && !isAdmin) {
-            router.push('/');
+            router.push('/dashboard');
         }
     }, [user, loading, router, requiredRole, isAdmin]);
 

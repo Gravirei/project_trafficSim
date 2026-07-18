@@ -5,9 +5,9 @@ import Navbar from '@/components/layout/Navbar';
 
 export default function AuthLayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isAuthPage = pathname === '/login';
+    const isPublicPage = pathname === '/login' || pathname === '/';
 
-    if (isAuthPage) {
+    if (isPublicPage) {
         return <>{children}</>;
     }
 

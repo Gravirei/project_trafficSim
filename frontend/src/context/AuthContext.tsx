@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(newToken);
         setUser(user);
         api.setToken(newToken);
-        router.push('/');
+        router.push('/dashboard');
     };
 
     const logout = () => {
