@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/api';
 
 function useScrollReveal(threshold = 0.15) {
     const ref = useRef<HTMLDivElement>(null);
@@ -89,7 +91,332 @@ const styles = {
     } as const,
 };
 
-function Nav() {
+function LoginPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+    const { login } = useAuth();
+    const [selectedRole, setSelectedRole] = useState<'VIEWER' | 'ADMIN' | null>(null);
+    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        try {
+            const data = await api.login({ email, username, password });
+            login(data.token, data.user);
+        } catch (err: any) {
+            setError(err.message || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <div
+                onClick={onClose}
+                style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 200,
+                    background: 'rgba(2, 6, 23, 0.6)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    opacity: open ? 1 : 0,
+                    pointerEvents: open ? 'auto' : 'none',
+                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+            />
+
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                maxWidth: '460px',
+                zIndex: 201,
+                background: '#0F1729',
+                borderLeft: '1px solid rgba(34, 197, 94, 0.1)',
+                boxShadow: '-10px 0 60px rgba(0, 0, 0, 0.5)',
+                transform: open ? 'translateX(0)' : 'translateX(100%)',
+                transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+            }}>
+                <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '1.25rem', color: '#F8FAFC', letterSpacing: '-0.03em' }}>
+                            TrafficSim
+                        </span>
+                        <button
+                            onClick={onClose}
+                            style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '10px',
+                                width: '40px',
+                                height: '40px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#94A3B8',
+                                transition: 'all 0.2s',
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#F8FAFC'; }}
+                            onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94A3B8'; }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {selectedRole === null && (
+                        <SelectRole onSelect={(role) => setSelectedRole(role)} onClose={onClose} />
+                    )}
+                    {selectedRole === 'VIEWER' && (
+                        <ViewerWarning onBack={() => setSelectedRole(null)} onClose={onClose} />
+                    )}
+                    {selectedRole === 'ADMIN' && (
+                        <AdminLogin
+                            email={email} setEmail={setEmail}
+                            username={username} setUsername={setUsername}
+                            password={password} setPassword={setPassword}
+                            error={error}
+                            loading={loading}
+                            onSubmit={handleSubmit}
+                            onBack={() => { setSelectedRole(null); setError(''); }}
+                            onClose={onClose}
+                        />
+                    )}
+
+                    <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: '2rem' }}>
+                        <p style={{ color: '#475569', fontSize: '0.8rem', margin: 0 }}>
+                            Secure access for authorized personnel only
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
+function SelectRole({ onSelect }: { onSelect: (role: 'VIEWER' | 'ADMIN') => void; onClose: () => void }) {
+    return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#F8FAFC', margin: '0 0 0.5rem' }}>
+                    Select Your Role
+                </div>
+                <div style={{ color: '#64748B', fontSize: '0.85rem' }}>
+                    Choose how you want to access the system
+                </div>
+            </div>
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '2rem' }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {[
+                    { role: 'ADMIN' as const, label: 'Admin', desc: 'Full access to control and monitor the system.' },
+                    { role: 'VIEWER' as const, label: 'Viewer', desc: 'Read-only access to view dashboards and analytics.' },
+                ].map((r) => (
+                    <button key={r.role} onClick={() => onSelect(r.role)} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '1rem 1.25rem', borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        cursor: 'pointer', textAlign: 'left', width: '100%',
+                        transition: 'all 0.2s',
+                    }}
+                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                    >
+                        <div>
+                            <div style={{ fontWeight: 600, color: '#F8FAFC', fontSize: '1rem', marginBottom: '0.15rem' }}>{r.label}</div>
+                            <div style={{ color: '#64748B', fontSize: '0.8rem' }}>{r.desc}</div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function ViewerWarning({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
+    return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '2rem' }}>
+            <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '56px', height: '56px', borderRadius: '14px',
+                background: 'rgba(245, 158, 11, 0.08)',
+                margin: '0 auto 1.25rem',
+            }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <path d="M12 9v4" /><path d="M12 17h.01" />
+                </svg>
+            </div>
+
+            <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC', textAlign: 'center', marginBottom: '0.75rem' }}>
+                Viewer Mode Unavailable
+            </div>
+
+            <div style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, textAlign: 'center', marginBottom: '2rem' }}>
+                The viewer role is currently under development. Please sign in as an admin to access the traffic control system.
+            </div>
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '1.5rem' }} />
+
+            <button onClick={onBack} style={{
+                padding: '0.875rem', borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.05)',
+                color: '#F8FAFC', fontSize: '0.9rem', cursor: 'pointer',
+                marginBottom: '0.75rem', transition: 'all 0.2s',
+            }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+            >
+                Try Different Role
+            </button>
+            <button onClick={onClose} style={{
+                padding: '0.875rem', borderRadius: '10px',
+                border: 'none', background: 'transparent',
+                color: '#64748B', fontSize: '0.85rem', cursor: 'pointer',
+                transition: 'color 0.2s',
+            }}
+                onMouseOver={e => { e.currentTarget.style.color = '#94A3B8'; }}
+                onMouseOut={e => { e.currentTarget.style.color = '#64748B'; }}
+            >
+                Cancel
+            </button>
+        </div>
+    );
+}
+
+function AdminLogin({
+    email, setEmail,
+    username, setUsername,
+    password, setPassword,
+    error, loading, onSubmit, onBack, onClose,
+}: {
+    email: string; setEmail: (v: string) => void;
+    username: string; setUsername: (v: string) => void;
+    password: string; setPassword: (v: string) => void;
+    error: string; loading: boolean;
+    onSubmit: (e: React.FormEvent) => Promise<void>;
+    onBack: () => void; onClose: () => void;
+}) {
+    return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+                <button
+                    onClick={onBack}
+                    style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        width: '40px', height: '40px',
+                        cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#94A3B8',
+                        transition: 'all 0.2s',
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#F8FAFC'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94A3B8'; }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+                    </svg>
+                </button>
+                <div>
+                    <div style={{ fontWeight: 600, color: '#F8FAFC', fontSize: '1.1rem', fontFamily: "'DM Sans', sans-serif" }}>
+                        Admin Access
+                    </div>
+                    <div style={{ color: '#64748B', fontSize: '0.8rem', fontFamily: "'DM Sans', sans-serif" }}>
+                        Sign in to your account
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '1.5rem' }} />
+
+            {error && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    color: '#fca5a5', padding: '0.75rem',
+                    borderRadius: '8px', marginBottom: '1rem',
+                    fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" /><path d="M15 9 9 15" /><path d="M9 9l6 6" />
+                    </svg>
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: '#94A3B8' }}>Email</label>
+                    <input type="email" placeholder="admin@trafficcontrol.io" value={email} onChange={e => setEmail(e.target.value)} required style={{
+                        width: '100%', padding: '0.875rem 1rem', borderRadius: '10px',
+                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#F8FAFC', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box',
+                    }} />
+                </div>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: '#94A3B8' }}>Username</label>
+                    <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} required style={{
+                        width: '100%', padding: '0.875rem 1rem', borderRadius: '10px',
+                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#F8FAFC', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box',
+                    }} />
+                </div>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: '#94A3B8' }}>Password</label>
+                    <input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required style={{
+                        width: '100%', padding: '0.875rem 1rem', borderRadius: '10px',
+                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#F8FAFC', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box',
+                    }} />
+                </div>
+
+                <button type="submit" disabled={loading} style={{
+                    marginTop: '0.75rem', padding: '0.875rem',
+                    border: 'none', borderRadius: '10px',
+                    color: '#020617', fontSize: '1rem', fontWeight: 600,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.6 : 1,
+                    background: '#22C55E',
+                    transition: 'all 0.2s',
+                }}
+                    onMouseOver={e => { if (!loading) { e.currentTarget.style.background = '#1a9e4b'; }}}
+                    onMouseOut={e => { if (!loading) { e.currentTarget.style.background = '#22C55E'; }}}
+                >
+                    {loading ? (
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            <svg style={{ animation: 'spin 0.8s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                            </svg>
+                            Signing in...
+                        </span>
+                    ) : 'Sign In'}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+function Nav({ onOpenLogin }: { onOpenLogin: () => void }) {
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 40);
@@ -117,15 +444,14 @@ function Nav() {
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{
                     width: '32px', height: '32px', borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #22C55E, #16a34a)',
+                    background: '#22C55E',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)',
                 }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#020617" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
                 </div>
-                <span style={{ fontWeight: 700, fontSize: '1.25rem', color: '#F8FAFC', letterSpacing: '-0.03em' }}>
+                <span style={{ fontWeight: 700, fontSize: '1.25rem', color: '#F8FAFC' }}>
                     TrafficSim
                 </span>
             </Link>
@@ -141,22 +467,23 @@ function Nav() {
                     onMouseOut={e => e.currentTarget.style.color = '#94A3B8'}>
                     How It Works
                 </a>
-                <a href="/login?action=login" style={{
+                <button onClick={onOpenLogin} style={{
                     color: '#020617', fontWeight: 600, fontSize: '0.9rem',
                     background: '#22C55E', padding: '0.5rem 1.5rem', borderRadius: '8px',
-                    textDecoration: 'none', transition: 'all 0.2s',
+                    border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                    transition: 'all 0.2s',
                     boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)',
                 }}
                     onMouseOver={e => { e.currentTarget.style.background = '#16a34a'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                     onMouseOut={e => { e.currentTarget.style.background = '#22C55E'; e.currentTarget.style.transform = 'none'; }}>
                     Get Started
-                </a>
+                </button>
             </div>
         </nav>
     );
 }
 
-function Hero() {
+function Hero({ onOpenLogin }: { onOpenLogin: () => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -253,21 +580,16 @@ function Hero() {
                 </p>
 
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a href="/login?action=login" style={{
+                    <button onClick={onOpenLogin} style={{
                         padding: '1rem 2.5rem', border: 'none', borderRadius: '12px',
                         color: '#020617', fontSize: '1rem', fontWeight: 600,
-                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
-                        background: 'linear-gradient(90deg, #22C55E, #16a34a, #22C55E)',
-                        backgroundSize: '200% 100%',
-                        textDecoration: 'none',
-                        animation: 'shimmer 3s linear infinite',
-                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.3)',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer', background: '#22C55E',
+                        transition: 'all 0.2s',
                     }}
-                        onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 40px rgba(34, 197, 94, 0.4)'; }}
-                        onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(34, 197, 94, 0.3)'; }}>
+                        onMouseOver={e => { e.currentTarget.style.background = '#1a9e4b'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = '#22C55E'; }}>
                         Launch Dashboard
-                    </a>
+                    </button>
                     <a href="#how-it-works" style={{
                         padding: '1rem 2.5rem', borderRadius: '12px',
                         color: '#F8FAFC', fontSize: '1rem', fontWeight: 500,
@@ -300,10 +622,7 @@ function Hero() {
                     from { opacity: 0; }
                     to   { opacity: 1; }
                 }
-                @keyframes shimmer {
-                    0%   { background-position: -200% 0; }
-                    100% { background-position: 200% 0; }
-                }
+
             `}</style>
         </section>
     );
@@ -546,7 +865,7 @@ function PreviewGallery() {
     );
 }
 
-function CtaSection() {
+function CtaSection({ onOpenLogin }: { onOpenLogin: () => void }) {
     return (
         <FadeInSection>
             <div style={{
@@ -565,25 +884,20 @@ function CtaSection() {
                 <p style={{ ...styles.subtext, margin: '0 auto 2rem auto', maxWidth: '500px' }}>
                     Launch the dashboard to start monitoring and controlling your traffic simulation in real time.
                 </p>
-                <a href="/login?action=login" style={{
+                <button onClick={onOpenLogin} style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
                     padding: '1rem 2.5rem', border: 'none', borderRadius: '12px',
                     color: '#020617', fontSize: '1rem', fontWeight: 600,
-                    fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
-                    background: 'linear-gradient(90deg, #22C55E, #16a34a, #22C55E)',
-                    backgroundSize: '200% 100%',
-                    textDecoration: 'none',
-                    animation: 'shimmer 3s linear infinite',
-                    boxShadow: '0 4px 20px rgba(34, 197, 94, 0.3)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    cursor: 'pointer', background: '#22C55E',
+                    transition: 'all 0.2s',
                 }}
-                    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 40px rgba(34, 197, 94, 0.4)'; }}
-                    onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(34, 197, 94, 0.3)'; }}>
+                    onMouseOver={e => { e.currentTarget.style.background = '#1a9e4b'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = '#22C55E'; }}>
                     <span>Get Started</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                     </svg>
-                </a>
+                </button>
             </div>
         </FadeInSection>
     );
@@ -602,7 +916,7 @@ function Footer() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <div style={{
                     width: '20px', height: '20px', borderRadius: '4px',
-                    background: 'linear-gradient(135deg, #22C55E, #16a34a)',
+                    background: '#22C55E',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#020617" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -617,16 +931,23 @@ function Footer() {
 }
 
 export default function LandingPage() {
+    const [loginOpen, setLoginOpen] = useState(false);
+
     return (
         <div style={{ background: '#020617', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif" }}>
-            <Nav />
-            <Hero />
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+            `}</style>
+            <Nav onOpenLogin={() => setLoginOpen(true)} />
+            <Hero onOpenLogin={() => setLoginOpen(true)} />
             <Features />
             <MetricsBar />
             <HowItWorks />
             <PreviewGallery />
-            <CtaSection />
+            <CtaSection onOpenLogin={() => setLoginOpen(true)} />
             <Footer />
+            <LoginPanel open={loginOpen} onClose={() => setLoginOpen(false)} />
         </div>
     );
 }
