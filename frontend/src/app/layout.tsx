@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
 import { AuthProvider } from "@/context/AuthContext";
+import AuthLayoutWrapper from "@/components/layout/AuthLayoutWrapper";
 
 export const metadata: Metadata = {
   title: "Traffic Simulation",
@@ -17,10 +17,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
-          <Navbar />
-          <main style={{ padding: "2rem", paddingTop: "5rem", maxWidth: "1440px", margin: "0 auto" }}>
+          <AuthLayoutWrapper>
             {children}
-          </main>
+          </AuthLayoutWrapper>
         </AuthProvider>
       </body>
     </html>
