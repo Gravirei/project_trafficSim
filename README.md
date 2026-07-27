@@ -1,6 +1,6 @@
 # Traffic Simulation System
 
-A real-time traffic control center simulation built as a 3rd year project. Models intersections using finite state machines and queue theory, with a live dashboard, adaptive AI mode, and role-based access control.
+A real-time traffic control center simulation built as a 3rd year project. Models intersections using finite state machines and queue theory, with a live dashboard, adaptive AI mode, and role-based access control with user safty first.
 
 ## Features
 
