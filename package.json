@@ -3,16 +3,29 @@
   "version": "1.0.0",
   "description": "Root configuration to run full stack simultaneously",
   "private": true,
+  "packageManager": "npm@10.0.0",
+  "workspaces": ["backend", "frontend"],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
-    "db:up": "cd postgres-setup && docker-compose up -d",
-    "db:down": "cd postgres-setup && docker-compose down",
-    "start:backend": "cd backend && npm run dev",
-    "start:frontend": "cd frontend && npm run dev",
+    "db:up": "docker compose -f postgres-setup/docker-compose.yml up -d",
+    "db:down": "docker compose -f postgres-setup/docker-compose.yml down",
+    "start:backend": "npm run dev --workspace=backend",
+    "start:frontend": "npm run dev --workspace=frontend",
     "dev": "npm run db:up && concurrently -c \"cyan,magenta\" -n \"BACKEND,FRONTEND\" \"npm run start:backend\" \"npm run start:frontend\"",
-    "stop": "npm run db:down"
+    "stop": "npm run db:down",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.16.0",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.6.0"
   }
 }

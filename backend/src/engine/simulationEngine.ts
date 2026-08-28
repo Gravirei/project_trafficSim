@@ -3,6 +3,7 @@ import { QueueModel, QueueMetrics } from './queueModel';
 import { SignalModel } from '../models/signal.model';
 import { QueueHistoryModel } from '../models/queueHistory.model';
 import { VehicleLogModel } from '../models/vehicleLog.model';
+import { logger } from '../config/logger';
 
 export type SimulationMode = 'MANUAL' | 'ADAPTIVE';
 
@@ -123,7 +124,7 @@ export class SimulationEngine {
         // Set initial FSM states so the FSM objects reflect the phase
         this.syncFSMsToPhase();
 
-        console.log(`🚦 Simulation engine initialized with ${this.signals.size} signals (Group A: [${this.groupA}], Group B: [${this.groupB}])`);
+        logger.info({ signalCount: this.signals.size, groupA: this.groupA, groupB: this.groupB }, 'Simulation engine initialized');
     }
 
     /**
@@ -180,7 +181,7 @@ export class SimulationEngine {
             this.tick();
         }, this.tickInterval);
 
-        console.log('▶️  Simulation started');
+        logger.info('Simulation started');
     }
 
     /**
@@ -195,7 +196,7 @@ export class SimulationEngine {
         }
         this.running = false;
 
-        console.log('⏹️  Simulation stopped');
+        logger.info('Simulation stopped');
     }
 
     /**
@@ -218,7 +219,7 @@ export class SimulationEngine {
         // Reload signals from DB
         await this.initialize();
 
-        console.log('↺  Simulation reset');
+        logger.info('Simulation reset');
     }
 
     /**
@@ -286,7 +287,7 @@ export class SimulationEngine {
                     for (const vehicle of servedVehicles) {
                         if (vehicle.dbId !== undefined) {
                             VehicleLogModel.logServed(vehicle.dbId)
-                                .catch(err => console.error('VehicleLog served error:', err.message));
+                                .catch(err => logger.error({ err }, 'VehicleLog served error'));
                         }
                     }
                 }
@@ -314,13 +315,13 @@ export class SimulationEngine {
                     arrivalRate: metrics.arrivalRate,
                 });
             } catch (err: any) {
-                console.error(`Tick error for signal ${signalId}:`, err.message);
+                logger.error({ err, signalId }, 'Tick error');
             }
         }
 
         // Flush all queue history snapshots in a single DB round-trip
         QueueHistoryModel.insertBatch(historyBatch)
-            .catch(err => console.error('QueueHistory batch insert error:', err.message));
+            .catch(err => logger.error({ err }, 'QueueHistory batch insert error'));
 
         // ─── 3. Emit tick event ──────────────────────────────────────────
         const tickData: TickData = {
@@ -364,12 +365,12 @@ export class SimulationEngine {
         // Log phase transition
         const [activeGroup, , activeState] = this.getPhaseGroups();
         const groupName = (this.phase.startsWith('A') ? 'N/S' : 'E/W');
-        console.log(`🚦 Phase → ${this.phase}: ${groupName} = ${activeState}, timer = ${this.phaseTimer}s`);
+        logger.info({ phase: this.phase, groupName, activeState, timer: this.phaseTimer }, 'Phase transition');
 
         // Update FSM states in database
         for (const [, unit] of this.signals) {
             SignalModel.updateState(unit.fsm.id, unit.fsm.getState()).catch((err) => {
-                console.error(`Failed to update signal ${unit.fsm.id} state:`, err.message);
+                logger.error({ err, signalId: unit.fsm.id }, 'Failed to update signal state');
             });
         }
     }
@@ -409,7 +410,7 @@ export class SimulationEngine {
         this.mode = mode;
         // Reset adaptive extension when switching modes to avoid lingering state
         this.adaptiveExtension = 0;
-        console.log(`🔄 Mode changed to: ${mode}`);
+        logger.info({ mode }, 'Mode changed');
     }
 
     /**

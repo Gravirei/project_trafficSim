@@ -1,104 +1,103 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { simulationEngine } from '../engine/simulationEngine';
 import { authorize } from '../middleware/auth';
+import { validate } from '../middleware/validate';
+import { asyncHandler } from '../lib/errors';
 
 const router = Router();
 
-// POST /api/simulation/start — Start the simulation
-router.post('/start', authorize('ADMIN'), async (_req: Request, res: Response) => {
-    try {
-        if (simulationEngine.isRunning()) {
-            res.status(400).json({ error: 'Simulation is already running' });
-            return;
-        }
+const modeSchema = z.object({ mode: z.enum(['MANUAL', 'ADAPTIVE']) });
+const speedSchema = z.object({ multiplier: z.number().int().refine((v) => [1, 2, 5, 10].includes(v), 'Invalid multiplier') });
+const lambdaSchema = z.object({ lambda: z.number().min(0).max(100) });
+const thresholdSchema = z.object({ threshold: z.number().int().min(1).max(50) });
 
-        await simulationEngine.initialize();
-        simulationEngine.start();
-        res.json({ message: 'Simulation started', status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
+// POST /api/simulation/start — Start the simulation
+router.post(
+  '/start',
+  authorize('ADMIN'),
+  asyncHandler(async (_req: Request, res: Response) => {
+    if (simulationEngine.isRunning()) {
+      res.status(400).json({ error: 'Simulation is already running' });
+      return;
     }
-});
+    await simulationEngine.initialize();
+    simulationEngine.start();
+    res.json({ message: 'Simulation started', status: simulationEngine.getStatus() });
+  })
+);
 
 // POST /api/simulation/stop — Stop the simulation
-router.post('/stop', authorize('ADMIN'), (_req: Request, res: Response) => {
-    try {
-        simulationEngine.stop();
-        res.json({ message: 'Simulation stopped', status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/stop',
+  authorize('ADMIN'),
+  asyncHandler(async (_req: Request, res: Response) => {
+    simulationEngine.stop();
+    res.json({ message: 'Simulation stopped', status: simulationEngine.getStatus() });
+  })
+);
 
 // POST /api/simulation/reset — Reset everything
-router.post('/reset', authorize('ADMIN'), async (_req: Request, res: Response) => {
-    try {
-        await simulationEngine.reset();
-        res.json({ message: 'Simulation reset', status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/reset',
+  authorize('ADMIN'),
+  asyncHandler(async (_req: Request, res: Response) => {
+    await simulationEngine.reset();
+    res.json({ message: 'Simulation reset', status: simulationEngine.getStatus() });
+  })
+);
 
 // GET /api/simulation/status — Get current status
 router.get('/status', (_req: Request, res: Response) => {
-    res.json(simulationEngine.getStatus());
+  res.json(simulationEngine.getStatus());
 });
 
 // POST /api/simulation/speed — Set speed multiplier
-router.post('/speed', authorize('ADMIN'), (req: Request, res: Response) => {
-    try {
-        const { multiplier } = req.body;
-        simulationEngine.setSpeed(multiplier || 1);
-        res.json({ message: `Speed set to ${multiplier}x`, status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/speed',
+  authorize('ADMIN'),
+  validate({ body: speedSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { multiplier } = req.body as z.infer<typeof speedSchema>;
+    simulationEngine.setSpeed(multiplier);
+    res.json({ message: `Speed set to ${multiplier}x`, status: simulationEngine.getStatus() });
+  })
+);
 
 // POST /api/simulation/mode — Set simulation mode
-router.post('/mode', authorize('ADMIN'), (req: Request, res: Response) => {
-    try {
-        const { mode } = req.body;
-        if (mode !== 'MANUAL' && mode !== 'ADAPTIVE') {
-            res.status(400).json({ error: 'Mode must be MANUAL or ADAPTIVE' });
-            return;
-        }
-        simulationEngine.setMode(mode);
-        res.json({ message: `Mode set to ${mode}`, status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/mode',
+  authorize('ADMIN'),
+  validate({ body: modeSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { mode } = req.body as z.infer<typeof modeSchema>;
+    simulationEngine.setMode(mode);
+    res.json({ message: `Mode set to ${mode}`, status: simulationEngine.getStatus() });
+  })
+);
 
 // POST /api/simulation/arrival-rate — Set arrival rate (λ)
-router.post('/arrival-rate', authorize('ADMIN'), (req: Request, res: Response) => {
-    try {
-        const { lambda } = req.body;
-        if (typeof lambda !== 'number' || lambda < 0 || lambda > 100) {
-            res.status(400).json({ error: 'Lambda must be a number between 0 and 100' });
-            return;
-        }
-        simulationEngine.setArrivalRate(lambda);
-        res.json({ message: `Arrival rate set to ${lambda}` });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/arrival-rate',
+  authorize('ADMIN'),
+  validate({ body: lambdaSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { lambda } = req.body as z.infer<typeof lambdaSchema>;
+    simulationEngine.setArrivalRate(lambda);
+    res.json({ message: `Arrival rate set to ${lambda}` });
+  })
+);
 
 // POST /api/simulation/adaptive-threshold — Set adaptive threshold
-router.post('/adaptive-threshold', authorize('ADMIN'), (req: Request, res: Response) => {
-    try {
-        const { threshold } = req.body;
-        if (typeof threshold !== 'number' || threshold < 1 || threshold > 50) {
-            res.status(400).json({ error: 'Threshold must be a number between 1 and 50' });
-            return;
-        }
-        simulationEngine.setAdaptiveThreshold(threshold);
-        res.json({ message: `Adaptive threshold set to ${threshold}`, status: simulationEngine.getStatus() });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-});
+router.post(
+  '/adaptive-threshold',
+  authorize('ADMIN'),
+  validate({ body: thresholdSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { threshold } = req.body as z.infer<typeof thresholdSchema>;
+    simulationEngine.setAdaptiveThreshold(threshold);
+    res.json({ message: `Adaptive threshold set to ${threshold}`, status: simulationEngine.getStatus() });
+  })
+);
 
 export default router;

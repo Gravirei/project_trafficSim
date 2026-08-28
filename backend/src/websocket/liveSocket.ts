@@ -1,6 +1,9 @@
 import { Server as HttpServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import { simulationEngine, TickData } from '../engine/simulationEngine';
+import { env } from '../config/env';
+import { logger } from '../config/logger';
 
 const MAX_WS_CLIENTS = 50;
 let lastEmitTime = 0;
@@ -23,11 +26,8 @@ export function initializeWebSocket(httpServer: HttpServer, corsOrigin: string):
         if (!token) {
             return next(new Error('Authentication error: Token required'));
         }
-        
         try {
-            const jwt = require('jsonwebtoken');
-            const secret = process.env.JWT_SECRET || 'secret_key_for_dev_only';
-            const decoded = jwt.verify(token, secret);
+            const decoded = jwt.verify(token, env.JWT_SECRET);
             socket.data.user = decoded;
             next();
         } catch (err) {
@@ -51,17 +51,17 @@ export function initializeWebSocket(httpServer: HttpServer, corsOrigin: string):
             return;
         }
 
-        console.log(`🔌 Client connected: ${socket.id}`);
+        logger.info({ socketId: socket.id }, 'Client connected');
 
         // Send current simulation status on connect
         socket.emit('simulation-status', simulationEngine.getStatus());
 
         socket.on('disconnect', () => {
-            console.log(`🔌 Client disconnected: ${socket.id}`);
+            logger.info({ socketId: socket.id }, 'Client disconnected');
         });
     });
 
-    console.log('🌐 WebSocket server initialized');
+    logger.info('WebSocket server initialized');
 
     return io;
 }

@@ -1,26 +1,24 @@
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { env } from './env';
+import { logger } from './logger';
 
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 5432,
-    user: process.env.DB_USER || 'admin',
-    password: process.env.DB_PASSWORD || 'admin',
-    database: process.env.DB_NAME || 'mydb',
+    host: env.DB_HOST,
+    port: env.DB_PORT,
+    user: env.DB_USER,
+    password: env.DB_PASSWORD,
+    database: env.DB_NAME,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
 });
 
-// Log connection status
 pool.on('connect', () => {
-    console.log('✅ Connected to PostgreSQL');
+    logger.info('Connected to PostgreSQL');
 });
 
 pool.on('error', (err) => {
-    console.error('❌ PostgreSQL pool error:', err.message);
+    logger.error({ err }, 'PostgreSQL pool error');
 });
 
 export default pool;

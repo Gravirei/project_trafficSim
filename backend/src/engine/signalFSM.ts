@@ -1,4 +1,5 @@
 import { SignalModel } from '../models/signal.model';
+import { logger } from '../config/logger';
 
 export type SignalState = 'GREEN' | 'YELLOW' | 'RED';
 
@@ -75,7 +76,7 @@ export class SignalFSM {
 
         // Update state in database
         SignalModel.updateState(this.id, this.state).catch((err) => {
-            console.error(`Failed to update signal ${this.id} state:`, err.message);
+            logger.error({ err, signalId: this.id }, 'Failed to update signal state');
         });
     }
 

@@ -1,3 +1,46 @@
+# Secrets & env
 .env
+.env.local
+!.env.example
+backend/.env
+frontend/.env.local
+
+# Dependencies
 node_modules
+.pnp
+.pnp.*
+
+# Build outputs
+backend/dist
+frontend/.next
+frontend/out
+frontend/build
+.next
+dist
+build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Coverage
+coverage
+.nyc_output
+
+# OS / Editor
+.DS_Store
+*.pem
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Misc
 .gravirei
+postgres-data
+pgadmin-data
+tmp

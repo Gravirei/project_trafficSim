@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
 import pool from './db';
+import { logger } from './logger';
 
 const REQUIRED_TABLES = ['signals', 'queue_history', 'vehicle_log'] as const;
 const databaseDir = path.resolve(__dirname, '../../database');
@@ -29,12 +30,12 @@ export async function ensureDatabaseReady(): Promise<void> {
             return;
         }
 
-        console.log(`🛠️  Initializing database schema (missing: ${missingTables.join(', ')})`);
+        logger.info({ missingTables }, 'Initializing database schema');
         await client.query(await readSqlFile('schema.sql'));
 
         if (missingTables.includes('signals')) {
             await client.query(await readSqlFile('seed.sql'));
-            console.log('🌱 Seeded default signals');
+            logger.info('Seeded default signals');
         }
     } finally {
         client.release();
