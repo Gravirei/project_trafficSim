@@ -58,46 +58,92 @@ See `INDUSTRY_STANDARD_PLAN.md` for the full transformation audit and phased pla
 
 ### Prerequisites
 
-- Node.js 20+ (`nvm use`)
-- Docker + Docker Compose
+| Requirement | Version | Windows | macOS | Linux |
+|---|---|---|---|---|
+| Node.js | 20+ | `winget install OpenJS.NodeJS` or `nvm-windows` | `brew install node@20` or `nvm` | `nvm` / package manager |
+| npm | 10+ | bundled with Node | bundled | bundled |
+| Docker | 24+ | Docker Desktop | Docker Desktop / Colima | Docker Engine |
 
-### Quickstart (Docker — recommended)
+> `.nvmrc` and `.node-version` both point to `20` — use `nvm use` (macOS/Linux) or `nvm use 20` (Windows nvm-windows) or `fnm use`.
+
+### Quickstart (Docker — recommended, works identically on Windows/macOS/Linux)
 
 ```bash
-cp backend/.env.example backend/.env   # set JWT_SECRET (min 32 chars)
+# 1. Configure env (all platforms: copy example, no shell-specific syntax)
+#    Windows (PowerShell/CMD):  copy backend\.env.example backend\.env
+#    macOS/Linux:               cp backend/.env.example backend/.env
+cp backend/.env.example backend/.env   # set JWT_SECRET (min 32 chars) — required
 cp frontend/.env.example frontend/.env.local
+
+# 2. Start full stack (needs Docker Desktop / Engine running)
 docker compose up --build
 # Frontend: http://localhost:3000
 # Backend:  http://localhost:3001/api/health
 #           http://localhost:3001/api/ready
+# pgAdmin (tools profile):  docker compose --profile tools up -d
+
+# Stop:
+docker compose down
 ```
 
-### Local dev (without Docker)
+### Local dev (without Docker full stack)
+
+Works the same on **Windows (PowerShell/CMD), macOS, Linux** — no `PGPASSWORD` or Unix-only `&&` required.
 
 ```bash
-# 1. Database only
-npm run db:up   # or: docker compose -f postgres-setup/docker-compose.yml up -d
+# 1. Database only (requires Docker)
+npm run db:up          # cross-platform: docker compose -f postgres-setup/docker-compose.yml up -d
+# Alternative full-stack wait: npm run db:up:wait
 
-# 2. Backend
-cd backend
-cp .env.example .env
-npm install
-npm run dev      # http://localhost:3001
+# 2. Backend — cross-platform DB setup (no `psql` CLI needed)
+npm run db:setup --workspace=backend   # runs node scripts/db-setup.mjs via pg (Windows/macOS/Linux)
+# or: npm run db:migrate --workspace=backend
 
-# 3. Frontend (separate terminal)
-cd frontend
-npm install
-npm run dev      # http://localhost:3000
+# 3. Run backend + frontend together (cross-platform)
+npm run dev            # → node scripts/dev.mjs (Windows-safe, no PowerShell && issue)
+# Alternative: runs separately
+npm run start:backend  # → npm run dev --workspace=backend (tsx watch)
+npm run start:frontend # → npm run dev --workspace=frontend (next dev)
+
+# Or run individually:
+# Terminal 1:
+npm run dev --workspace=backend   # http://localhost:3001
+# Terminal 2:
+npm run dev --workspace=frontend  # http://localhost:3000
 ```
 
-### Scripts (from repo root)
+<details>
+<summary>Windows-specific notes</summary>
+
+- Use **PowerShell** or **CMD** — `npm run dev` now uses `node scripts/dev.mjs` so `&&` and `PGPASSWORD=...` are not required.
+- If `docker` not found, install **Docker Desktop** and enable WSL2 backend.
+- `psql` is **not required** — `scripts/db-setup.mjs` uses Node `pg` driver.
+- Line endings are normalized to `LF` via `.gitattributes:1` — no CRLF issues on clone.
+- If `npm ci` fails on native deps, run `npm install` or `npm rebuild`.
+
+</details>
+
+<details>
+<summary>macOS / Linux notes</summary>
+
+- `brew install node@20` + `docker` / `colima` works.
+- `npm run dev:legacy` still available for Unix shells if you prefer `&&` + `concurrently`.
+
+</details>
+
+### Scripts (from repo root — all cross-platform)
 
 ```bash
-npm run lint        # eslint across workspaces
-npm run typecheck   # tsc --noEmit
-npm run build       # build both apps
-npm run test        # jest (backend)
-npm run format      # prettier write
+npm run lint              # eslint across workspaces
+npm run typecheck         # tsc --noEmit
+npm run build             # build both apps
+npm run test              # jest --forceExit (backend, 34 tests)
+npm run format            # prettier write
+npm run db:up             # docker compose postgres up -d
+npm run db:down           # docker compose postgres down
+npm run dev               # cross-platform dev (node scripts/dev.mjs)
+npm run dev:docker        # docker compose up --build (full stack)
+npm run dev:docker:down   # docker compose down
 ```
 
 ## Environment Variables

@@ -25,6 +25,13 @@ services:
       dockerfile: Dockerfile
     container_name: traffic-backend
     restart: unless-stopped
+    # Cross-platform: loads from backend/.env (optional) — works on Windows/macOS/Linux
+    # Windows: copy backend\.env.example backend\.env  |  macOS/Linux: cp backend/.env.example backend/.env
+    env_file:
+      - path: ./backend/.env
+        required: false
+      - path: ./.env
+        required: false
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -34,7 +41,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-admin}
       DB_NAME: ${DB_NAME:-mydb}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_SECRET: ${JWT_SECRET:-dev_only_32_chars_minimum_secret___}
     ports:
       - "3001:3001"
     depends_on:
@@ -45,6 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
     networks:
       - app-network
 
@@ -55,13 +63,19 @@ services:
     container_name: traffic-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-      NEXT_PUBLIC_WS_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-http://localhost:3001}
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - app-network
 

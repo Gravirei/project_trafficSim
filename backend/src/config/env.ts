@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import path from 'node:path';
 
-dotenv.config();
+// Cross-platform: load .env from multiple locations (root .env, backend/.env)
+// Works on Windows (C:\...), macOS, Linux — path.resolve handles separators.
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'backend', '.env') });
+// Also try relative to this file (when cwd is backend/ or root/)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../..', 'backend', '.env') });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

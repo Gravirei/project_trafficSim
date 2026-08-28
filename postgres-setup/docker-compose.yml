@@ -1,23 +1,29 @@
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
-    restart: always
+    image: postgres:16-alpine
+    container_name: traffic-postgres-standalone
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: mydb
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME:-mydb}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-mydb}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - postgres-network
 
   pgadmin:
     image: dpage/pgadmin4:9.13.0
-    container_name: pgadmin4
-    restart: always
+    container_name: traffic-pgadmin-standalone
+    restart: unless-stopped
+    profiles: ["tools"]
     ports:
       - "5050:80"
     environment:
@@ -26,7 +32,8 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - postgres-network
 
