@@ -16,7 +16,7 @@ jobs:
           POSTGRES_USER: admin
           POSTGRES_PASSWORD: admin
           POSTGRES_DB: mydb
-        ports: ["5432:5432"]
+        ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -36,6 +36,9 @@ jobs:
       - run: npm run lint --if-present
       - run: npm run typecheck --workspaces --if-present
       - run: npm run build --workspaces --if-present
+      - name: Frontend tests
+        working-directory: frontend
+        run: npm test -- --passWithNoTests
       - name: Backend tests
         working-directory: backend
         env:
@@ -50,4 +53,3 @@ jobs:
         run: |
           docker build -f backend/Dockerfile -t traffic-backend:ci ./backend
           docker build -f frontend/Dockerfile -t traffic-frontend:ci ./frontend
-

@@ -7,46 +7,49 @@ let globalHistory: TickPayload[] = [];
 let globalConnected = false;
 
 export function useSocket() {
-    const [data, setData] = useState<TickPayload | null>(globalData);
-    const [history, setHistory] = useState<TickPayload[]>(globalHistory);
-    const [connected, setConnected] = useState(globalConnected);
+  const [data, setData] = useState<TickPayload | null>(globalData);
+  const [history, setHistory] = useState<TickPayload[]>(globalHistory);
+  const [connected, setConnected] = useState(globalConnected);
 
-    useEffect(() => {
-        const socket = socketService.connect();
-        setConnected(socket.connected);
-        globalConnected = socket.connected;
+  useEffect(() => {
+    const socket = socketService.connect();
+    // setState in effect: we need to mirror the synchronous socket.connected
+    // value into React state so the hook re-renders on initial connection.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConnected(socket.connected);
+    globalConnected = socket.connected;
 
-        function onConnect() {
-            setConnected(true);
-            globalConnected = true;
-        }
+    function onConnect() {
+      setConnected(true);
+      globalConnected = true;
+    }
 
-        function onDisconnect() {
-            setConnected(false);
-            globalConnected = false;
-        }
+    function onDisconnect() {
+      setConnected(false);
+      globalConnected = false;
+    }
 
-        function onTickUpdate(payload: TickPayload) {
-            globalData = payload;
-            setData(payload);
-            setHistory(prev => {
-                const newHistory = [...prev, payload];
-                if (newHistory.length > 60) newHistory.shift();
-                globalHistory = newHistory;
-                return newHistory;
-            });
-        }
+    function onTickUpdate(payload: TickPayload) {
+      globalData = payload;
+      setData(payload);
+      setHistory((prev) => {
+        const newHistory = [...prev, payload];
+        if (newHistory.length > 60) newHistory.shift();
+        globalHistory = newHistory;
+        return newHistory;
+      });
+    }
 
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('tick-update', onTickUpdate);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('tick-update', onTickUpdate);
 
-        return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-            socket.off('tick-update', onTickUpdate);
-        };
-    }, []);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('tick-update', onTickUpdate);
+    };
+  }, []);
 
-    return { data, history, connected };
+  return { data, history, connected };
 }

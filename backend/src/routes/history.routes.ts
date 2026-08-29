@@ -12,6 +12,8 @@ const historyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
 });
 
+export { historyQuerySchema };
+
 // GET /api/history — Fetch historical queue data
 router.get(
   '/',

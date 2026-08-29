@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Chart as ChartJS,
@@ -9,9 +9,10 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import type { ChartOptions } from 'chart.js';
 import { TickPayload } from '@/types';
 
 ChartJS.register(
@@ -30,10 +31,10 @@ interface QueueChartProps {
 }
 
 export default function QueueChart({ history }: QueueChartProps) {
-  const labels = history.map(h => h.tick);
-  
+  const labels = history.map((h) => h.tick);
+
   const latestSignals = history.length > 0 ? history[history.length - 1].signals : [];
-  
+
   const colors = [
     '#3b82f6', // blue
     '#f59e0b', // amber
@@ -46,8 +47,8 @@ export default function QueueChart({ history }: QueueChartProps) {
   const datasets = latestSignals.map((signal, index) => {
     return {
       label: `${signal.name} (${signal.signalId})`,
-      data: history.map(h => {
-        const sig = h.signals.find(s => s.signalId === signal.signalId);
+      data: history.map((h) => {
+        const sig = h.signals.find((s) => s.signalId === signal.signalId);
         return sig ? sig.queueLength : 0;
       }),
       borderColor: colors[index % colors.length],
@@ -65,44 +66,47 @@ export default function QueueChart({ history }: QueueChartProps) {
     datasets,
   };
 
-  const options: any = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
-      duration: 0 // Disable animation for real-time performance
+      duration: 0, // Disable animation for real-time performance
     },
     scales: {
       x: {
         grid: { color: '#1e293b' },
-        ticks: { color: '#94a3b8', maxTicksLimit: 10 }
+        ticks: { color: '#94a3b8', maxTicksLimit: 10 },
       },
       y: {
         beginAtZero: true,
         grid: { color: '#1e293b' },
-        ticks: { color: '#94a3b8', stepSize: 5 }
-      }
+        ticks: { color: '#94a3b8', stepSize: 5 },
+      },
     },
     plugins: {
       legend: {
         labels: {
           color: '#f8fafc',
-          font: { family: 'inherit' }
-        }
+          font: { family: 'inherit' },
+        },
       },
       tooltip: {
         mode: 'index',
         intersect: false,
-      }
+      },
     },
     interaction: {
       mode: 'nearest',
       axis: 'x',
-      intersect: false
-    }
+      intersect: false,
+    },
   };
 
   return (
-    <div className="glass-panel" style={{ height: '350px', width: '100%', marginTop: '1.5rem', marginBottom: '2rem' }}>
+    <div
+      className="glass-panel"
+      style={{ height: '350px', width: '100%', marginTop: '1.5rem', marginBottom: '2rem' }}
+    >
       <div style={{ marginBottom: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
         LIVE QUEUE LENGTH OVER TIME (LAST 60 TICKS)
       </div>

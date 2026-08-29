@@ -1,0 +1,47 @@
+# Dependabot configuration
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options
+
+version: 2
+
+# One update per ecosystem. We currently ship only npm packages (root + backend
+# + frontend workspaces). Add more `updates` blocks (e.g. `pip`, `github-actions`,
+# `docker`) as the project grows.
+
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      # Weekly on Mondays, 09:00 UTC. Change if you want a quieter cadence.
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
+    # Open a single PR per group so review load stays predictable.
+    groups:
+      production-dependencies:
+        dependency-type: 'production'
+        patterns:
+          - '*'
+      development-dependencies:
+        dependency-type: 'development'
+        patterns:
+          - '*'
+    # We want a heads-up on major bumps, but require an explicit label to
+    # actually merge them. Comment-only is too quiet, so we keep the PR but
+    # ignore major version bumps from the auto-merge path.
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+    # Cap PR noise — open at most 10 at a time.
+    open-pull-requests-limit: 10
+    # Conventional commit prefix so release tooling can parse the changelog.
+    commit-message:
+      prefix: 'chore(deps)'
+    labels:
+      - 'dependencies'
+      - 'automated'
+    # Don't ping individual reviewers — let CODEOWNERS + team workflows handle it.
+    reviewers: []
+    # Stop touching lockfiles in the historical commit format.
+    rebase-strategy: 'auto'

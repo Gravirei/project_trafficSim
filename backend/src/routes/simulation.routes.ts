@@ -8,9 +8,16 @@ import { asyncHandler } from '../lib/errors';
 const router = Router();
 
 const modeSchema = z.object({ mode: z.enum(['MANUAL', 'ADAPTIVE']) });
-const speedSchema = z.object({ multiplier: z.number().int().refine((v) => [1, 2, 5, 10].includes(v), 'Invalid multiplier') });
+const speedSchema = z.object({
+  multiplier: z
+    .number()
+    .int()
+    .refine((v) => [1, 2, 5, 10].includes(v), 'Invalid multiplier'),
+});
 const lambdaSchema = z.object({ lambda: z.number().min(0).max(100) });
 const thresholdSchema = z.object({ threshold: z.number().int().min(1).max(50) });
+
+export { modeSchema, speedSchema, lambdaSchema, thresholdSchema };
 
 // POST /api/simulation/start — Start the simulation
 router.post(
@@ -96,7 +103,10 @@ router.post(
   asyncHandler(async (req: Request, res: Response) => {
     const { threshold } = req.body as z.infer<typeof thresholdSchema>;
     simulationEngine.setAdaptiveThreshold(threshold);
-    res.json({ message: `Adaptive threshold set to ${threshold}`, status: simulationEngine.getStatus() });
+    res.json({
+      message: `Adaptive threshold set to ${threshold}`,
+      status: simulationEngine.getStatus(),
+    });
   })
 );
 

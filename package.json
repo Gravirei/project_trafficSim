@@ -4,7 +4,10 @@
   "description": "Root configuration to run full stack simultaneously",
   "private": true,
   "packageManager": "npm@10.0.0",
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -25,11 +28,30 @@
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore"
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "frontend/src/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "bash -c 'cd frontend && npx eslint --fix --max-warnings 0'",
+      "prettier --write"
+    ],
+    "backend/src/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "bash -c 'cd backend && npx eslint --fix --max-warnings 0'",
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.16.0",
     "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.4.1",
     "prettier": "^3.6.0"
   }
 }

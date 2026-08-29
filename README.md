@@ -16,13 +16,13 @@ A real-time traffic control center simulation built as a 3rd year project. Model
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
+| Layer    | Tech                                                         |
+| -------- | ------------------------------------------------------------ |
 | Frontend | Next.js 16, React 19, TypeScript, Chart.js, Socket.IO client |
-| Backend | Node.js, Express 5, TypeScript, Socket.IO |
-| Database | PostgreSQL |
-| Auth | JWT (jsonwebtoken) + bcryptjs |
-| Dev DB | Docker + pgAdmin |
+| Backend  | Node.js, Express 5, TypeScript, Socket.IO                    |
+| Database | PostgreSQL                                                   |
+| Auth     | JWT (jsonwebtoken) + bcryptjs                                |
+| Dev DB   | Docker + pgAdmin                                             |
 
 ## Project Structure (Industry Standard)
 
@@ -58,11 +58,11 @@ See `INDUSTRY_STANDARD_PLAN.md` for the full transformation audit and phased pla
 
 ### Prerequisites
 
-| Requirement | Version | Windows | macOS | Linux |
-|---|---|---|---|---|
-| Node.js | 20+ | `winget install OpenJS.NodeJS` or `nvm-windows` | `brew install node@20` or `nvm` | `nvm` / package manager |
-| npm | 10+ | bundled with Node | bundled | bundled |
-| Docker | 24+ | Docker Desktop | Docker Desktop / Colima | Docker Engine |
+| Requirement | Version | Windows                                         | macOS                           | Linux                   |
+| ----------- | ------- | ----------------------------------------------- | ------------------------------- | ----------------------- |
+| Node.js     | 20+     | `winget install OpenJS.NodeJS` or `nvm-windows` | `brew install node@20` or `nvm` | `nvm` / package manager |
+| npm         | 10+     | bundled with Node                               | bundled                         | bundled                 |
+| Docker      | 24+     | Docker Desktop                                  | Docker Desktop / Colima         | Docker Engine           |
 
 > `.nvmrc` and `.node-version` both point to `20` — use `nvm use` (macOS/Linux) or `nvm use 20` (Windows nvm-windows) or `fnm use`.
 
@@ -148,39 +148,44 @@ npm run dev:docker:down   # docker compose down
 
 ## Environment Variables
 
-| Var | Required | Default | Description |
-|---|---|---|---|
-| `JWT_SECRET` | ✅ (prod) | — | Min 32 chars, no fallback in prod |
-| `CORS_ORIGIN` | — | `http://localhost:3000` | Comma-separated allowlist |
-| `DB_HOST/PORT/USER/PASSWORD/NAME` | — | `localhost:5432/admin/mydb` | Postgres |
-| `NEXT_PUBLIC_API_URL` | — | `http://localhost:3001` | Frontend API base |
+| Var                               | Required  | Default                     | Description                       |
+| --------------------------------- | --------- | --------------------------- | --------------------------------- |
+| `JWT_SECRET`                      | ✅ (prod) | —                           | Min 32 chars, no fallback in prod |
+| `CORS_ORIGIN`                     | —         | `http://localhost:3000`     | Comma-separated allowlist         |
+| `DB_HOST/PORT/USER/PASSWORD/NAME` | —         | `localhost:5432/admin/mydb` | Postgres                          |
+| `NEXT_PUBLIC_API_URL`             | —         | `http://localhost:3001`     | Frontend API base                 |
 
 See `backend/.env.example` and `frontend/.env.example`.
 
 ## Default Credentials (seed)
 
-| Username | Email | Password | Role |
-|---|---|---|---|
-| `admin` | `admin_auth@gravirei.com` | `Tr4ff1cS1m@2026!` | Admin |
+| Username | Email                     | Password           | Role  |
+| -------- | ------------------------- | ------------------ | ----- |
+| `admin`  | `admin_auth@gravirei.com` | `Tr4ff1cS1m@2026!` | Admin |
 
 > Change the admin password after first login. Seed hash is in `backend/database/seed.sql`.
 
 ## API Overview
 
-| Endpoint | Method | Auth | Admin Only |
-|---|---|---|---|
-| `/api/auth/login` | POST | ❌ | ❌ |
-| `/api/auth/me` | GET | ✅ | ❌ |
-| `/api/auth/register` | POST | ✅ | ✅ |
-| `/api/simulation/status` | GET | ✅ | ❌ |
-| `/api/simulation/start` | POST | ✅ | ✅ |
-| `/api/simulation/stop` | POST | ✅ | ✅ |
-| `/api/simulation/mode` | POST | ✅ | ✅ |
-| `/api/signals` | GET | ✅ | ❌ |
-| `/api/signals` | POST | ✅ | ✅ |
-| `/api/analytics/summary` | GET | ✅ | ❌ |
-| `/api/history` | GET | ✅ | ❌ |
-| WebSocket `tick-update` | — | ✅ | ❌ |
+| Endpoint                 | Method | Auth | Admin Only |
+| ------------------------ | ------ | ---- | ---------- |
+| `/api/docs`              | GET    | ❌   | ❌         |
+| `/api/openapi.json`      | GET    | ❌   | ❌         |
+| `/api/auth/login`        | POST   | ❌   | ❌         |
+| `/api/auth/me`           | GET    | ✅   | ❌         |
+| `/api/auth/register`     | POST   | ✅   | ✅         |
+| `/api/simulation/status` | GET    | ✅   | ❌         |
+| `/api/simulation/start`  | POST   | ✅   | ✅         |
+| `/api/simulation/stop`   | POST   | ✅   | ✅         |
+| `/api/simulation/mode`   | POST   | ✅   | ✅         |
+| `/api/signals`           | GET    | ✅   | ❌         |
+| `/api/signals`           | POST   | ✅   | ✅         |
+| `/api/analytics/summary` | GET    | ✅   | ❌         |
+| `/api/history`           | GET    | ✅   | ❌         |
+| WebSocket `tick-update`  | —      | ✅   | ❌         |
+
+- `GET /api/docs` — Swagger UI (interactive API documentation)
+- `GET /api/openapi.json` — OpenAPI 3.0 spec (raw JSON)
 
 ## Running Tests
 

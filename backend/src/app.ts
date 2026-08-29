@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import pinoHttp from 'pino-http';
@@ -14,6 +14,7 @@ import historyRoutes from './routes/history.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './config/logger';
+import { setupOpenApi } from './config/openapi';
 import pool from './config/db';
 
 const app = express();
@@ -25,12 +26,16 @@ app.use(compression());
 app.use(
   pinoHttp({
     logger,
-    customProps: (req) => ({ requestId: (req as any).requestId }),
+    customProps: (req) => ({ requestId: (req as Request).requestId }),
     autoLogging: true,
   })
 );
 app.use(corsMiddleware);
 app.use(express.json({ limit: '100kb' }));
+
+// OpenAPI / Swagger UI (mounted before rate limiter so docs are never throttled)
+setupOpenApi(app);
+
 app.use(generalRateLimiter);
 
 // Health checks (public, no auth)

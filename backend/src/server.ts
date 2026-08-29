@@ -33,15 +33,18 @@ async function start(): Promise<void> {
 
     // Retention cleanup: delete rows older than 24 hours, runs every hour
     const RETENTION_HOURS = 24;
-    const retentionInterval = setInterval(async () => {
-      try {
-        const v = await VehicleLogModel.purgeOlderThan(RETENTION_HOURS);
-        const q = await QueueHistoryModel.purgeOlderThan(RETENTION_HOURS);
-        logger.info({ v, q }, 'Retention cleanup completed');
-      } catch (err: any) {
-        logger.error({ err }, 'Retention cleanup error');
-      }
-    }, 60 * 60 * 1000);
+    const retentionInterval = setInterval(
+      async () => {
+        try {
+          const v = await VehicleLogModel.purgeOlderThan(RETENTION_HOURS);
+          const q = await QueueHistoryModel.purgeOlderThan(RETENTION_HOURS);
+          logger.info({ v, q }, 'Retention cleanup completed');
+        } catch (err: unknown) {
+          logger.error({ err }, 'Retention cleanup error');
+        }
+      },
+      60 * 60 * 1000
+    );
 
     // Graceful shutdown
     const shutdown = async (signal: string): Promise<void> => {
@@ -73,7 +76,7 @@ async function start(): Promise<void> {
       logger.fatal({ err }, 'Uncaught Exception');
       process.exit(1);
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.fatal({ err }, 'Failed to start server');
     process.exit(1);
   }

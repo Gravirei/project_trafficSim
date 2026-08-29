@@ -29,6 +29,8 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(8).max(128),
 });
 
+export { loginSchema, registerSchema, changePasswordSchema };
+
 // POST /api/auth/login
 router.post(
   '/login',

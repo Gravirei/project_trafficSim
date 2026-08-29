@@ -1,12 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodObject, ZodError } from 'zod';
+import { ZodTypeAny, ZodError } from 'zod';
 
 type Schemas = {
-  body?: ZodObject<any>;
-  query?: ZodObject<any>;
-  params?: ZodObject<any>;
+  body?: ZodTypeAny;
+  query?: ZodTypeAny;
+  params?: ZodTypeAny;
 };
 
+/**
+ * Express middleware that validates `body`, `query`, and `params` against
+ * provided zod schemas. On success, the parsed (and transformed) value
+ * replaces the original. On failure, responds 400 with structured details.
+ */
 export function validate(schemas: Schemas) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
@@ -14,12 +19,15 @@ export function validate(schemas: Schemas) {
         req.body = schemas.body.parse(req.body);
       }
       if (schemas.query) {
+        // Express 5 makes req.query a getter; reassign through the prototype
+        // to apply the parsed/transformed value.
         const parsed = schemas.query.parse(req.query);
-        // mutate req.query in place (Express 5 makes query read-only, so assign via Object.defineProperty fallback)
         Object.assign(req.query, parsed);
       }
       if (schemas.params) {
-        req.params = schemas.params.parse(req.params) as any;
+        // params is always defined for matched routes, but typing requires a cast
+        const parsed = schemas.params.parse(req.params) as Record<string, string>;
+        Object.assign(req.params, parsed);
       }
       next();
     } catch (err) {

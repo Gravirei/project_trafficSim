@@ -1,0 +1,38 @@
+# CODEOWNERS
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+# The last matching pattern wins.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# IMPORTANT: Replace `@gravirei/maintainers` below with your real GitHub
+# team/handle (e.g. `@your-org/core-team`) before relying on this file for
+# automatic review requests.
+
+# Default owners for everything
+*                                @gravirei/maintainers
+
+# Backend (Node/Express/PostgreSQL/Socket.io)
+/backend/                        @gravirei/maintainers
+/backend/src/engine/             @gravirei/maintainers
+/backend/src/websocket/          @gravirei/maintainers
+/backend/src/routes/             @gravirei/maintainers
+
+# Frontend (Next.js/React)
+/frontend/                       @gravirei/maintainers
+/frontend/src/app/               @gravirei/maintainers
+/frontend/src/components/        @gravirei/maintainers
+
+# CI / infra
+/.github/                        @gravirei/maintainers
+/docker-compose.yml              @gravirei/maintainers
+/postgres-setup/                 @gravirei/maintainers
+
+# Plans and docs that affect engineering process
+/INDUSTRY_STANDARD_PLAN.md       @gravirei/maintainers
+/docs/                           @gravirei/maintainers
+
+# Root-level config that touches the whole repo
+/package.json                    @gravirei/maintainers
+/tsconfig.base.json              @gravirei/maintainers
+/eslint.config.mjs               @gravirei/maintainers
+/prettier.config.mjs             @gravirei/maintainers

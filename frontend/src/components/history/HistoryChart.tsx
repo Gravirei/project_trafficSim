@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Chart as ChartJS,
@@ -12,6 +12,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import type { ChartOptions } from 'chart.js';
 import { QueueHistory } from '@/types';
 
 ChartJS.register(
@@ -30,8 +31,12 @@ interface HistoryChartProps {
 }
 
 export default function HistoryChart({ history }: HistoryChartProps) {
-  const labels = history.map(r =>
-    new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const labels = history.map((r) =>
+    new Date(r.timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
   );
 
   const data = {
@@ -39,7 +44,7 @@ export default function HistoryChart({ history }: HistoryChartProps) {
     datasets: [
       {
         label: 'Queue Length (vehicles)',
-        data: history.map(r => r.queue_length),
+        data: history.map((r) => r.queue_length),
         borderColor: '#3b82f6',
         backgroundColor: '#3b82f6' + '1A',
         borderWidth: 2,
@@ -51,7 +56,7 @@ export default function HistoryChart({ history }: HistoryChartProps) {
       },
       {
         label: 'Avg Wait Wq (sec)',
-        data: history.map(r => r.avg_wait_time),
+        data: history.map((r) => r.avg_wait_time),
         borderColor: '#f59e0b',
         backgroundColor: '#f59e0b' + '1A',
         borderWidth: 2,
@@ -64,7 +69,7 @@ export default function HistoryChart({ history }: HistoryChartProps) {
     ],
   };
 
-  const options: any = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 300 },
@@ -101,7 +106,15 @@ export default function HistoryChart({ history }: HistoryChartProps) {
 
   return (
     <div className="glass-panel" style={{ height: '300px', width: '100%' }}>
-      <div style={{ marginBottom: '1rem', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.875rem', letterSpacing: '0.05em' }}>
+      <div
+        style={{
+          marginBottom: '1rem',
+          fontWeight: 600,
+          color: 'var(--text-secondary)',
+          fontSize: '0.875rem',
+          letterSpacing: '0.05em',
+        }}
+      >
         QUEUE LENGTH & WAIT TIME OVER TIME
       </div>
       <div style={{ height: 'calc(100% - 2rem)' }}>

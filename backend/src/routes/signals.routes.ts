@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { SignalModel } from '../models/signal.model';
+import { QueueHistoryModel } from '../models/queueHistory.model';
 import { authorize } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { asyncHandler } from '../lib/errors';
@@ -22,6 +23,8 @@ const updateSignalSchema = z.object({
 });
 
 const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
+
+export { createSignalSchema, updateSignalSchema, idParamSchema };
 
 // GET /api/signals — List all signals
 router.get(
@@ -77,7 +80,6 @@ router.get(
       return;
     }
 
-    const { QueueHistoryModel } = await import('../models/queueHistory.model');
     const history = await QueueHistoryModel.getBySignalId(id, 1);
 
     const stats =

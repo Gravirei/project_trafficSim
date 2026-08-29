@@ -1,72 +1,80 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useCallback, useState } from "react";
-import { SignalTick } from "@/types";
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { SignalTick } from '@/types';
 
 interface Props {
   signals: SignalTick[] | undefined;
 }
 
 // ─── Canvas constants ───────────────────────────────────────────────────────
-const W        = 4000;               // logical world width  (px)
-const H        = 4000;               // logical world height (px)
+const W = 4000; // logical world width  (px)
+const H = 4000; // logical world height (px)
 const CENTER_X = W / 2;
 const CENTER_Y = H / 2;
-const RW       = 160;                // total road width (both lanes)
-const LW       = RW / 2;            // single lane width
+const RW = 160; // total road width (both lanes)
+const LW = RW / 2; // single lane width
 
-const ROAD_COLOR    = "#1e293b";
-const ASPHALT       = "#262f3d";
-const ASPHALT_LIGHT = "#2d3748";
-const GRASS         = "#0d1117";
-const MARKING       = "#64748b";
-const MARKING_BRIGHT = "#94a3b8";
-const CAR_COLORS    = [
-  "#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6",
-  "#ec4899","#e2e8f0","#06b6d4","#f97316","#a78bfa",
-  "#14b8a6","#fb923c",
+const ROAD_COLOR = '#1e293b';
+const ASPHALT = '#262f3d';
+const GRASS = '#0d1117';
+const MARKING = '#64748b';
+const MARKING_BRIGHT = '#94a3b8';
+const CAR_COLORS = [
+  '#ef4444',
+  '#3b82f6',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#ec4899',
+  '#e2e8f0',
+  '#06b6d4',
+  '#f97316',
+  '#a78bfa',
+  '#14b8a6',
+  '#fb923c',
 ];
 
 const DIR = { NORTH: 0, SOUTH: 1, EAST: 2, WEST: 3 } as const;
 type Direction = 0 | 1 | 2 | 3;
 
 const LIGHT_HEX: Record<string, string> = {
-  GREEN:  "#10b981",
-  YELLOW: "#f59e0b",
-  RED:    "#ef4444",
+  GREEN: '#10b981',
+  YELLOW: '#f59e0b',
+  RED: '#ef4444',
 };
 
 // Stop-line positions (where vehicles must wait at red)
 const STOP: Record<Direction, number> = {
   [DIR.NORTH]: CENTER_Y + RW / 2 + 10,
   [DIR.SOUTH]: CENTER_Y - RW / 2 - 10,
-  [DIR.EAST]:  CENTER_X - RW / 2 - 10,
-  [DIR.WEST]:  CENTER_X + RW / 2 + 10,
+  [DIR.EAST]: CENTER_X - RW / 2 - 10,
+  [DIR.WEST]: CENTER_X + RW / 2 + 10,
 };
 
 // ─── Vehicle class ──────────────────────────────────────────────────────────
 class Vehicle {
-  id:       string;
-  dir:      Direction;
-  x:        number;
-  y:        number;
-  w:        number;
-  h:        number;
-  color:    string;
+  id: string;
+  dir: Direction;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  color: string;
   maxSpeed: number;
-  speed:    number;
+  speed: number;
   stopLine: number;
   bodyVariant: number; // 0-2 — pick a subtle shape variant
 
   constructor(dir: Direction, spawnOffset: number = 0) {
-    this.id         = Math.random().toString(36).slice(2);
-    this.dir        = dir;
-    this.w          = 24;
-    this.h          = 44;
-    this.color      = CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
-    this.maxSpeed   = 2.8 + Math.random() * 1.4;
-    this.speed      = this.maxSpeed;
-    this.stopLine   = STOP[dir];
+    this.id = Math.random().toString(36).slice(2);
+    this.dir = dir;
+    this.w = 24;
+    this.h = 44;
+    this.color = CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
+    this.maxSpeed = 2.8 + Math.random() * 1.4;
+    this.speed = this.maxSpeed;
+    this.stopLine = STOP[dir];
     this.bodyVariant = Math.floor(Math.random() * 3);
 
     // Spawn far offscreen on the correct lane
@@ -92,18 +100,30 @@ class Vehicle {
 
   update(dt: number, lightState: string, others: Vehicle[]) {
     const speedScale = dt / 16.66;
-    const brakeDist  = 120;
-    let   target     = this.maxSpeed;
+    const brakeDist = 120;
+    let target = this.maxSpeed;
 
     // ── 1. Traffic light braking ──────────────────────────────────────────
-    if (lightState === "RED" || lightState === "YELLOW") {
+    if (lightState === 'RED' || lightState === 'YELLOW') {
       let dist = 0;
       let past = false;
       switch (this.dir) {
-        case DIR.NORTH: dist = this.y - this.h / 2 - this.stopLine; past = this.y < this.stopLine; break;
-        case DIR.SOUTH: dist = this.stopLine - (this.y + this.h / 2); past = this.y > this.stopLine; break;
-        case DIR.EAST:  dist = this.stopLine - (this.x + this.h / 2); past = this.x > this.stopLine; break;
-        case DIR.WEST:  dist = this.x - this.h / 2 - this.stopLine;  past = this.x < this.stopLine; break;
+        case DIR.NORTH:
+          dist = this.y - this.h / 2 - this.stopLine;
+          past = this.y < this.stopLine;
+          break;
+        case DIR.SOUTH:
+          dist = this.stopLine - (this.y + this.h / 2);
+          past = this.y > this.stopLine;
+          break;
+        case DIR.EAST:
+          dist = this.stopLine - (this.x + this.h / 2);
+          past = this.x > this.stopLine;
+          break;
+        case DIR.WEST:
+          dist = this.x - this.h / 2 - this.stopLine;
+          past = this.x < this.stopLine;
+          break;
       }
       if (!past && dist >= 0 && dist < brakeDist) {
         target = Math.max(0, (dist / brakeDist) * this.maxSpeed);
@@ -117,10 +137,18 @@ class Vehicle {
       if (o.id === this.id || o.dir !== this.dir) continue;
       let d = Infinity;
       switch (this.dir) {
-        case DIR.NORTH: if (o.y < this.y) d = this.y - o.y - this.h; break;
-        case DIR.SOUTH: if (o.y > this.y) d = o.y - this.y - this.h; break;
-        case DIR.EAST:  if (o.x > this.x) d = o.x - this.x - this.h; break;
-        case DIR.WEST:  if (o.x < this.x) d = this.x - o.x - this.h; break;
+        case DIR.NORTH:
+          if (o.y < this.y) d = this.y - o.y - this.h;
+          break;
+        case DIR.SOUTH:
+          if (o.y > this.y) d = o.y - this.y - this.h;
+          break;
+        case DIR.EAST:
+          if (o.x > this.x) d = o.x - this.x - this.h;
+          break;
+        case DIR.WEST:
+          if (o.x < this.x) d = this.x - o.x - this.h;
+          break;
       }
       if (d > 0 && d < gap) gap = d;
     }
@@ -135,10 +163,18 @@ class Vehicle {
 
     const m = this.speed * speedScale;
     switch (this.dir) {
-      case DIR.NORTH: this.y -= m; break;
-      case DIR.SOUTH: this.y += m; break;
-      case DIR.EAST:  this.x += m; break;
-      case DIR.WEST:  this.x -= m; break;
+      case DIR.NORTH:
+        this.y -= m;
+        break;
+      case DIR.SOUTH:
+        this.y += m;
+        break;
+      case DIR.EAST:
+        this.x += m;
+        break;
+      case DIR.WEST:
+        this.x -= m;
+        break;
     }
   }
 
@@ -146,54 +182,77 @@ class Vehicle {
     ctx.save();
     ctx.translate(this.x, this.y);
     switch (this.dir) {
-      case DIR.EAST:  ctx.rotate(Math.PI / 2);  break;
-      case DIR.WEST:  ctx.rotate(-Math.PI / 2); break;
-      case DIR.SOUTH: ctx.rotate(Math.PI);       break;
+      case DIR.EAST:
+        ctx.rotate(Math.PI / 2);
+        break;
+      case DIR.WEST:
+        ctx.rotate(-Math.PI / 2);
+        break;
+      case DIR.SOUTH:
+        ctx.rotate(Math.PI);
+        break;
     }
 
     // Shadow
-    ctx.shadowColor   = "rgba(0,0,0,0.55)";
-    ctx.shadowBlur    = 10;
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 4;
 
     // Body
     const r = this.bodyVariant === 0 ? 6 : this.bodyVariant === 1 ? 4 : 8;
     ctx.fillStyle = this.color;
     ctx.beginPath();
-    (ctx as any).roundRect(-this.w / 2, -this.h / 2, this.w, this.h, r);
+    // CanvasRenderingContext2D.roundRect is standard in modern browsers but not
+    // in the lib.dom types we ship with; cast to a structurally-compatible type.
+    const roundedCtx = ctx as CanvasRenderingContext2D & {
+      roundRect: (x: number, y: number, w: number, h: number, r: number) => void;
+    };
+    roundedCtx.roundRect(-this.w / 2, -this.h / 2, this.w, this.h, r);
     ctx.fill();
 
-    ctx.shadowColor = "transparent";
+    ctx.shadowColor = 'transparent';
 
     // Roof highlight
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
     ctx.beginPath();
-    (ctx as any).roundRect(-this.w / 2 + 4, -this.h / 2 + 14, this.w - 8, 14, 3);
+    roundedCtx.roundRect(-this.w / 2 + 4, -this.h / 2 + 14, this.w - 8, 14, 3);
     ctx.fill();
 
     // Windshield
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = '#0f172a';
     ctx.beginPath();
-    (ctx as any).roundRect(-this.w / 2 + 3, -this.h / 2 + 7, this.w - 6, 9, 2);
+    roundedCtx.roundRect(-this.w / 2 + 3, -this.h / 2 + 7, this.w - 6, 9, 2);
     ctx.fill();
 
     // Rear window
     ctx.beginPath();
-    (ctx as any).roundRect(-this.w / 2 + 4, this.h / 2 - 12, this.w - 8, 6, 2);
+    roundedCtx.roundRect(-this.w / 2 + 4, this.h / 2 - 12, this.w - 8, 6, 2);
     ctx.fill();
 
     // Headlights
-    ctx.fillStyle = "#fef08a";
-    ctx.beginPath(); ctx.arc(-this.w / 2 + 5, -this.h / 2 + 3, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc( this.w / 2 - 5, -this.h / 2 + 3, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(-this.w / 2 + 5, -this.h / 2 + 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(this.w / 2 - 5, -this.h / 2 + 3, 3, 0, Math.PI * 2);
+    ctx.fill();
 
     // Taillights — glow when braking
     const braking = this.speed < this.maxSpeed * 0.5;
-    ctx.fillStyle = braking ? "#ff3333" : "#cc2222";
-    if (braking) { ctx.shadowColor = "#ef4444"; ctx.shadowBlur = 8; }
-    ctx.beginPath(); ctx.arc(-this.w / 2 + 5, this.h / 2 - 3, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc( this.w / 2 - 5, this.h / 2 - 3, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0;
+    ctx.fillStyle = braking ? '#ff3333' : '#cc2222';
+    if (braking) {
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 8;
+    }
+    ctx.beginPath();
+    ctx.arc(-this.w / 2 + 5, this.h / 2 - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(this.w / 2 - 5, this.h / 2 - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
 
     ctx.restore();
   }
@@ -212,13 +271,19 @@ function drawEnvironment(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(0, 0, W, H);
 
   // Subtle grid (city blocks)
-  ctx.strokeStyle = "rgba(255,255,255,0.015)";
-  ctx.lineWidth   = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.015)';
+  ctx.lineWidth = 1;
   for (let gx = 0; gx < W; gx += 200) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(gx, 0);
+    ctx.lineTo(gx, H);
+    ctx.stroke();
   }
   for (let gy = 0; gy < H; gy += 200) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, gy);
+    ctx.lineTo(W, gy);
+    ctx.stroke();
   }
 
   // ─── Roads (long in all 4 directions) ─────────────────────────────────
@@ -230,32 +295,40 @@ function drawEnvironment(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(0, CENTER_Y - RW / 2, W, RW);
 
   // Road edge lines (solid white)
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.lineWidth   = 2;
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 2;
   // Vertical edges
   ctx.beginPath();
-  ctx.moveTo(CENTER_X - RW / 2, 0); ctx.lineTo(CENTER_X - RW / 2, H);
-  ctx.moveTo(CENTER_X + RW / 2, 0); ctx.lineTo(CENTER_X + RW / 2, H);
+  ctx.moveTo(CENTER_X - RW / 2, 0);
+  ctx.lineTo(CENTER_X - RW / 2, H);
+  ctx.moveTo(CENTER_X + RW / 2, 0);
+  ctx.lineTo(CENTER_X + RW / 2, H);
   // Horizontal edges
-  ctx.moveTo(0, CENTER_Y - RW / 2); ctx.lineTo(W, CENTER_Y - RW / 2);
-  ctx.moveTo(0, CENTER_Y + RW / 2); ctx.lineTo(W, CENTER_Y + RW / 2);
+  ctx.moveTo(0, CENTER_Y - RW / 2);
+  ctx.lineTo(W, CENTER_Y - RW / 2);
+  ctx.moveTo(0, CENTER_Y + RW / 2);
+  ctx.lineTo(W, CENTER_Y + RW / 2);
   ctx.stroke();
 
   // ─── Lane divider dashes ──────────────────────────────────────────────
   ctx.strokeStyle = MARKING;
-  ctx.lineWidth   = 3;
+  ctx.lineWidth = 3;
   ctx.setLineDash([28, 22]);
 
   // Vertical centre dashes (avoid intersection)
   ctx.beginPath();
-  ctx.moveTo(CENTER_X, 0); ctx.lineTo(CENTER_X, CENTER_Y - RW / 2 - 30);
-  ctx.moveTo(CENTER_X, CENTER_Y + RW / 2 + 30); ctx.lineTo(CENTER_X, H);
+  ctx.moveTo(CENTER_X, 0);
+  ctx.lineTo(CENTER_X, CENTER_Y - RW / 2 - 30);
+  ctx.moveTo(CENTER_X, CENTER_Y + RW / 2 + 30);
+  ctx.lineTo(CENTER_X, H);
   ctx.stroke();
 
   // Horizontal centre dashes (avoid intersection)
   ctx.beginPath();
-  ctx.moveTo(0, CENTER_Y); ctx.lineTo(CENTER_X - RW / 2 - 30, CENTER_Y);
-  ctx.moveTo(CENTER_X + RW / 2 + 30, CENTER_Y); ctx.lineTo(W, CENTER_Y);
+  ctx.moveTo(0, CENTER_Y);
+  ctx.lineTo(CENTER_X - RW / 2 - 30, CENTER_Y);
+  ctx.moveTo(CENTER_X + RW / 2 + 30, CENTER_Y);
+  ctx.lineTo(W, CENTER_Y);
   ctx.stroke();
   ctx.setLineDash([]);
 
@@ -264,29 +337,43 @@ function drawEnvironment(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(CENTER_X - RW / 2, CENTER_Y - RW / 2, RW, RW);
 
   // Intersection cross guides
-  ctx.strokeStyle = "rgba(255,255,255,0.04)";
-  ctx.lineWidth   = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
   ctx.setLineDash([8, 8]);
   ctx.beginPath();
-  ctx.moveTo(CENTER_X, CENTER_Y - RW / 2); ctx.lineTo(CENTER_X, CENTER_Y + RW / 2);
-  ctx.moveTo(CENTER_X - RW / 2, CENTER_Y); ctx.lineTo(CENTER_X + RW / 2, CENTER_Y);
+  ctx.moveTo(CENTER_X, CENTER_Y - RW / 2);
+  ctx.lineTo(CENTER_X, CENTER_Y + RW / 2);
+  ctx.moveTo(CENTER_X - RW / 2, CENTER_Y);
+  ctx.lineTo(CENTER_X + RW / 2, CENTER_Y);
   ctx.stroke();
   ctx.setLineDash([]);
 
   // ─── Stop lines ───────────────────────────────────────────────────────
-  ctx.lineWidth   = 6;
+  ctx.lineWidth = 6;
   ctx.strokeStyle = MARKING_BRIGHT;
   // Northbound (bottom edge of intersection, right lane)
-  ctx.beginPath(); ctx.moveTo(CENTER_X, CENTER_Y + RW / 2); ctx.lineTo(CENTER_X + RW / 2, CENTER_Y + RW / 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CENTER_X, CENTER_Y + RW / 2);
+  ctx.lineTo(CENTER_X + RW / 2, CENTER_Y + RW / 2);
+  ctx.stroke();
   // Southbound (top edge, left lane)
-  ctx.beginPath(); ctx.moveTo(CENTER_X - RW / 2, CENTER_Y - RW / 2); ctx.lineTo(CENTER_X, CENTER_Y - RW / 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CENTER_X - RW / 2, CENTER_Y - RW / 2);
+  ctx.lineTo(CENTER_X, CENTER_Y - RW / 2);
+  ctx.stroke();
   // Eastbound (left edge, bottom lane)
-  ctx.beginPath(); ctx.moveTo(CENTER_X - RW / 2, CENTER_Y); ctx.lineTo(CENTER_X - RW / 2, CENTER_Y + RW / 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CENTER_X - RW / 2, CENTER_Y);
+  ctx.lineTo(CENTER_X - RW / 2, CENTER_Y + RW / 2);
+  ctx.stroke();
   // Westbound (right edge, top lane)
-  ctx.beginPath(); ctx.moveTo(CENTER_X + RW / 2, CENTER_Y - RW / 2); ctx.lineTo(CENTER_X + RW / 2, CENTER_Y); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CENTER_X + RW / 2, CENTER_Y - RW / 2);
+  ctx.lineTo(CENTER_X + RW / 2, CENTER_Y);
+  ctx.stroke();
 
   // ─── Pedestrian crossings ─────────────────────────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
   const stripeW = 12;
   const stripeGap = 8;
   const crossDepth = 26;
@@ -308,9 +395,9 @@ function drawEnvironment(ctx: CanvasRenderingContext2D) {
   }
 
   // ─── Distance markers along roads (every 200px from center) ───────────
-  ctx.font      = "10px 'Fira Code', monospace";
-  ctx.fillStyle = "rgba(255,255,255,0.08)";
-  ctx.textAlign = "center";
+  ctx.font = "10px 'Fira Code', monospace";
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.textAlign = 'center';
   for (let d = 200; d < H / 2; d += 200) {
     // Up
     ctx.fillText(`${d}m`, CENTER_X - RW / 2 - 20, CENTER_Y - d);
@@ -324,14 +411,14 @@ function drawEnvironment(ctx: CanvasRenderingContext2D) {
 }
 
 function drawTrafficLights(ctx: CanvasRenderingContext2D, states: string[]) {
-  const pad    = 40;
+  const pad = 40;
   const corner = RW / 2 + pad;
 
   const poles: [number, number, number, string][] = [
-    [CENTER_X - corner, CENTER_Y - corner, Math.PI / 2,  states[1]], // NW → Southbound
+    [CENTER_X - corner, CENTER_Y - corner, Math.PI / 2, states[1]], // NW → Southbound
     [CENTER_X + corner, CENTER_Y + corner, -Math.PI / 2, states[0]], // SE → Northbound
-    [CENTER_X - corner, CENTER_Y + corner, 0,             states[2]], // SW → Eastbound
-    [CENTER_X + corner, CENTER_Y - corner, Math.PI,       states[3]], // NE → Westbound
+    [CENTER_X - corner, CENTER_Y + corner, 0, states[2]], // SW → Eastbound
+    [CENTER_X + corner, CENTER_Y - corner, Math.PI, states[3]], // NE → Westbound
   ];
 
   for (const [px, py, rot, lightState] of poles) {
@@ -340,37 +427,44 @@ function drawTrafficLights(ctx: CanvasRenderingContext2D, states: string[]) {
     ctx.rotate(rot);
 
     // Pole
-    ctx.fillStyle = "#0a0e17";
+    ctx.fillStyle = '#0a0e17';
     ctx.fillRect(-3, 28, 6, 16);
 
     // Housing
-    ctx.fillStyle   = "#0a0e17";
-    ctx.strokeStyle = "#1e293b";
-    ctx.lineWidth   = 1.5;
+    ctx.fillStyle = '#0a0e17';
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    (ctx as any).roundRect(-13, -32, 26, 64, 5);
+    const localRoundedCtx = ctx as CanvasRenderingContext2D & {
+      roundRect: (x: number, y: number, w: number, h: number, r: number) => void;
+    };
+    localRoundedCtx.roundRect(-13, -32, 26, 64, 5);
     ctx.fill();
     ctx.stroke();
 
     // Bulbs
-    const bulbs: [number, string][] = [[-18, "RED"], [0, "YELLOW"], [18, "GREEN"]];
+    const bulbs: [number, string][] = [
+      [-18, 'RED'],
+      [0, 'YELLOW'],
+      [18, 'GREEN'],
+    ];
     for (const [oy, color] of bulbs) {
       const isActive = lightState === color;
       ctx.beginPath();
       ctx.arc(0, oy, 8, 0, Math.PI * 2);
-      ctx.fillStyle = isActive ? LIGHT_HEX[color] : "#1e293b";
+      ctx.fillStyle = isActive ? LIGHT_HEX[color] : '#1e293b';
       if (isActive) {
         ctx.shadowColor = LIGHT_HEX[color];
-        ctx.shadowBlur  = 18;
+        ctx.shadowBlur = 18;
       }
       ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.shadowColor = "transparent";
+      ctx.shadowColor = 'transparent';
 
       // Reflective ring
       if (isActive) {
         ctx.strokeStyle = LIGHT_HEX[color];
-        ctx.lineWidth   = 1;
+        ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.stroke();
         ctx.globalAlpha = 1;
@@ -382,15 +476,15 @@ function drawTrafficLights(ctx: CanvasRenderingContext2D, states: string[]) {
 }
 
 function drawDirectionLabels(ctx: CanvasRenderingContext2D, signals: SignalTick[]) {
-  ctx.font      = "bold 13px 'Fira Code', monospace";
-  ctx.textAlign = "center";
+  ctx.font = "bold 13px 'Fira Code', monospace";
+  ctx.textAlign = 'center';
 
   const labelOffset = RW / 2 + 70;
   const labels: [number, number, string, number, Direction][] = [
-    [CENTER_X, CENTER_Y - labelOffset, signals[0]?.name ?? "North", 0, DIR.NORTH],
-    [CENTER_X, CENTER_Y + labelOffset, signals[1]?.name ?? "South", 0, DIR.SOUTH],
-    [CENTER_X - labelOffset, CENTER_Y, signals[2]?.name ?? "East", -Math.PI / 2, DIR.EAST],
-    [CENTER_X + labelOffset, CENTER_Y, signals[3]?.name ?? "West", Math.PI / 2, DIR.WEST],
+    [CENTER_X, CENTER_Y - labelOffset, signals[0]?.name ?? 'North', 0, DIR.NORTH],
+    [CENTER_X, CENTER_Y + labelOffset, signals[1]?.name ?? 'South', 0, DIR.SOUTH],
+    [CENTER_X - labelOffset, CENTER_Y, signals[2]?.name ?? 'East', -Math.PI / 2, DIR.EAST],
+    [CENTER_X + labelOffset, CENTER_Y, signals[3]?.name ?? 'West', Math.PI / 2, DIR.WEST],
   ];
 
   for (const [x, y, text, rot, dir] of labels) {
@@ -402,12 +496,12 @@ function drawDirectionLabels(ctx: CanvasRenderingContext2D, signals: SignalTick[
     const q = signals[dir]?.queueLength ?? 0;
     const labelText = text.toUpperCase();
 
-    ctx.fillStyle = "#475569";
+    ctx.fillStyle = '#475569';
     ctx.fillText(labelText, 0, 0);
 
     // Queue count
     ctx.font = "11px 'Fira Code', monospace";
-    ctx.fillStyle = q > 10 ? "#ef4444" : q > 5 ? "#f59e0b" : "#64748b";
+    ctx.fillStyle = q > 10 ? '#ef4444' : q > 5 ? '#f59e0b' : '#64748b';
     ctx.fillText(`Q: ${q}`, 0, 16);
 
     ctx.restore();
@@ -417,10 +511,14 @@ function drawDirectionLabels(ctx: CanvasRenderingContext2D, signals: SignalTick[
 // ─── Mini-map ───────────────────────────────────────────────────────────────
 function drawMinimap(
   mapCtx: CanvasRenderingContext2D,
-  mapW: number, mapH: number,
-  viewX: number, viewY: number, viewW: number, viewH: number,
+  mapW: number,
+  mapH: number,
+  viewX: number,
+  viewY: number,
+  viewW: number,
+  viewH: number,
   vehicles: Vehicle[],
-  lightStates: string[],
+  lightStates: string[]
 ) {
   const sx = mapW / W;
   const sy = mapH / H;
@@ -428,16 +526,16 @@ function drawMinimap(
   mapCtx.clearRect(0, 0, mapW, mapH);
 
   // Background
-  mapCtx.fillStyle = "rgba(13, 17, 23, 0.9)";
+  mapCtx.fillStyle = 'rgba(13, 17, 23, 0.9)';
   mapCtx.fillRect(0, 0, mapW, mapH);
 
   // Roads
-  mapCtx.fillStyle = "rgba(38, 47, 61, 0.8)";
+  mapCtx.fillStyle = 'rgba(38, 47, 61, 0.8)';
   mapCtx.fillRect((CENTER_X - RW / 2) * sx, 0, RW * sx, mapH); // vertical
   mapCtx.fillRect(0, (CENTER_Y - RW / 2) * sy, mapW, RW * sy); // horizontal
 
   // Intersection
-  mapCtx.fillStyle = "rgba(30, 41, 59, 0.9)";
+  mapCtx.fillStyle = 'rgba(30, 41, 59, 0.9)';
   mapCtx.fillRect((CENTER_X - RW / 2) * sx, (CENTER_Y - RW / 2) * sy, RW * sx, RW * sy);
 
   // Traffic lights on minimap
@@ -448,7 +546,7 @@ function drawMinimap(
     [CENTER_X + RW / 2 + 20, CENTER_Y, 3], // West light
   ];
   for (const [lx, ly, idx] of lightPositions) {
-    mapCtx.fillStyle = LIGHT_HEX[lightStates[idx]] ?? "#ef4444";
+    mapCtx.fillStyle = LIGHT_HEX[lightStates[idx]] ?? '#ef4444';
     mapCtx.beginPath();
     mapCtx.arc(lx * sx, ly * sy, 2.5, 0, Math.PI * 2);
     mapCtx.fill();
@@ -465,13 +563,13 @@ function drawMinimap(
   mapCtx.globalAlpha = 1;
 
   // Viewport rectangle
-  mapCtx.strokeStyle = "#3b82f6";
-  mapCtx.lineWidth   = 1.5;
+  mapCtx.strokeStyle = '#3b82f6';
+  mapCtx.lineWidth = 1.5;
   mapCtx.strokeRect(viewX * sx, viewY * sy, viewW * sx, viewH * sy);
 
   // Border
-  mapCtx.strokeStyle = "rgba(255,255,255,0.15)";
-  mapCtx.lineWidth   = 1;
+  mapCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+  mapCtx.lineWidth = 1;
   mapCtx.strokeRect(0, 0, mapW, mapH);
 }
 
@@ -484,17 +582,17 @@ const persistedVisualizerState = {
 
 // ─── React Component ─────────────────────────────────────────────────────────
 export default function IntersectionVisualizer({ signals }: Props) {
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const minimapRef   = useRef<HTMLCanvasElement>(null);
-  const signalsRef   = useRef<SignalTick[] | undefined>(signals);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const minimapRef = useRef<HTMLCanvasElement>(null);
+  const signalsRef = useRef<SignalTick[] | undefined>(signals);
   const containerRef = useRef<HTMLDivElement>(null);
-  const wrapRef      = useRef<HTMLDivElement>(null);
-  const transform    = useRef(
-    persistedVisualizerState.transform.scale > 0 
-      ? { ...persistedVisualizerState.transform } 
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const transform = useRef(
+    persistedVisualizerState.transform.scale > 0
+      ? { ...persistedVisualizerState.transform }
       : { scale: 1, panX: 0, panY: 0 }
   );
-  const dragging     = useRef<{ sx: number; sy: number; spx: number; spy: number } | null>(null);
+  const dragging = useRef<{ sx: number; sy: number; spx: number; spy: number } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(
     persistedVisualizerState.transform.scale > 0
       ? Math.round(persistedVisualizerState.transform.scale * 100)
@@ -517,7 +615,7 @@ export default function IntersectionVisualizer({ signals }: Props) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     if (!ctx) return;
 
     const vehicles = persistedVisualizerState.vehicles;
@@ -525,11 +623,11 @@ export default function IntersectionVisualizer({ signals }: Props) {
     const MAX_PER_DIR = 60; // allow many more vehicles on long roads
 
     let lastTime = 0;
-    let animId   = 0;
+    let animId = 0;
 
     function getLightState(dir: Direction): string {
       const sigs = signalsRef.current;
-      if (!sigs || !sigs[dir]) return "RED";
+      if (!sigs || !sigs[dir]) return 'RED';
       return sigs[dir].state;
     }
 
@@ -550,7 +648,7 @@ export default function IntersectionVisualizer({ signals }: Props) {
       // Scale cap proportionally: more queue → allow more vehicles on the road
       const cap = Math.min(MAX_PER_DIR, Math.max(8, queueLen + 6));
 
-      const inDir = vehicles.filter(v => v.dir === dir).length;
+      const inDir = vehicles.filter((v) => v.dir === dir).length;
       if (inDir >= cap) return;
 
       const newV = new Vehicle(dir);
@@ -559,12 +657,23 @@ export default function IntersectionVisualizer({ signals }: Props) {
         if (v.dir !== dir) continue;
         let d = Infinity;
         switch (dir) {
-          case DIR.NORTH: d = Math.abs(v.y - (H + newV.h)); break;
-          case DIR.SOUTH: d = Math.abs(v.y - (-newV.h)); break;
-          case DIR.EAST:  d = Math.abs(v.x - (-newV.h)); break;
-          case DIR.WEST:  d = Math.abs(v.x - (W + newV.h)); break;
+          case DIR.NORTH:
+            d = Math.abs(v.y - (H + newV.h));
+            break;
+          case DIR.SOUTH:
+            d = Math.abs(v.y - -newV.h);
+            break;
+          case DIR.EAST:
+            d = Math.abs(v.x - -newV.h);
+            break;
+          case DIR.WEST:
+            d = Math.abs(v.x - (W + newV.h));
+            break;
         }
-        if (d < 80) { blocked = true; break; }
+        if (d < 80) {
+          blocked = true;
+          break;
+        }
       }
       if (!blocked) vehicles.push(newV);
     }
@@ -591,19 +700,22 @@ export default function IntersectionVisualizer({ signals }: Props) {
 
       ctx.clearRect(0, 0, W, H);
       drawEnvironment(ctx);
-      drawTrafficLights(ctx, [0, 1, 2, 3].map(d => getLightState(d as Direction)));
+      drawTrafficLights(
+        ctx,
+        [0, 1, 2, 3].map((d) => getLightState(d as Direction))
+      );
 
       const sigs = signalsRef.current;
       if (sigs && sigs.length >= 4) drawDirectionLabels(ctx, sigs);
 
       // Sort by Y for proper depth ordering
       vehicles.sort((a, b) => a.y - b.y);
-      vehicles.forEach(v => v.draw(ctx));
+      vehicles.forEach((v) => v.draw(ctx));
 
       // ─── Update minimap ────────────────────────────────────────────────
       const miniCanvas = minimapRef.current;
       if (miniCanvas) {
-        const mapCtx = miniCanvas.getContext("2d");
+        const mapCtx = miniCanvas.getContext('2d');
         if (mapCtx) {
           const el = containerRef.current;
           const { scale, panX, panY } = transform.current;
@@ -615,10 +727,15 @@ export default function IntersectionVisualizer({ signals }: Props) {
           const viewW = cw / scale;
           const viewH = ch / scale;
           drawMinimap(
-            mapCtx, miniCanvas.width, miniCanvas.height,
-            viewX, viewY, viewW, viewH,
+            mapCtx,
+            miniCanvas.width,
+            miniCanvas.height,
+            viewX,
+            viewY,
+            viewW,
+            viewH,
             vehicles,
-            [0, 1, 2, 3].map(d => getLightState(d as Direction)),
+            [0, 1, 2, 3].map((d) => getLightState(d as Direction))
           );
         }
       }
@@ -632,7 +749,7 @@ export default function IntersectionVisualizer({ signals }: Props) {
 
   // ── Pan / Zoom ────────────────────────────────────────────────────────────
   useEffect(() => {
-    const el  = containerRef.current;
+    const el = containerRef.current;
     const wrap = wrapRef.current;
     if (!el || !wrap) return;
 
@@ -668,8 +785,13 @@ export default function IntersectionVisualizer({ signals }: Props) {
     }
 
     function onMouseDown(e: MouseEvent) {
-      dragging.current = { sx: e.clientX, sy: e.clientY, spx: transform.current.panX, spy: transform.current.panY };
-      el!.style.cursor = "grabbing";
+      dragging.current = {
+        sx: e.clientX,
+        sy: e.clientY,
+        spx: transform.current.panX,
+        spy: transform.current.panY,
+      };
+      el!.style.cursor = 'grabbing';
     }
 
     function onMouseMove(e: MouseEvent) {
@@ -681,19 +803,19 @@ export default function IntersectionVisualizer({ signals }: Props) {
 
     function onMouseUp() {
       dragging.current = null;
-      el!.style.cursor = "grab";
+      el!.style.cursor = 'grab';
     }
 
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
 
     return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
     };
   }, [applyTransform]);
 
@@ -722,7 +844,11 @@ export default function IntersectionVisualizer({ signals }: Props) {
     const { scale, panX, panY } = transform.current;
     const newScale = Math.min(4, scale * 1.3);
     const ratio = newScale / scale;
-    transform.current = { scale: newScale, panX: cx - (cx - panX) * ratio, panY: cy - (cy - panY) * ratio };
+    transform.current = {
+      scale: newScale,
+      panX: cx - (cx - panX) * ratio,
+      panY: cy - (cy - panY) * ratio,
+    };
     applyTransform();
   }
 
@@ -736,38 +862,85 @@ export default function IntersectionVisualizer({ signals }: Props) {
     const { scale, panX, panY } = transform.current;
     const newScale = Math.max(0.06, scale / 1.3);
     const ratio = newScale / scale;
-    transform.current = { scale: newScale, panX: cx - (cx - panX) * ratio, panY: cy - (cy - panY) * ratio };
+    transform.current = {
+      scale: newScale,
+      panX: cx - (cx - panX) * ratio,
+      panY: cy - (cy - panY) * ratio,
+    };
     applyTransform();
   }
 
   return (
-    <div className="glass-panel" style={{ padding: "1rem", height: "560px", display: "flex", flexDirection: "column" }}>
+    <div
+      className="glass-panel"
+      style={{ padding: '1rem', height: '560px', display: 'flex', flexDirection: 'column' }}
+    >
       {/* Header toolbar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexShrink: 0 }}>
-        <span className="metrics-label" style={{ fontSize: "0.75rem", letterSpacing: "0.12em" }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.75rem',
+          flexShrink: 0,
+        }}
+      >
+        <span className="metrics-label" style={{ fontSize: '0.75rem', letterSpacing: '0.12em' }}>
           LIVE INTERSECTION VIEW
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontFamily: "var(--font-fira-code)" }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span
+            style={{
+              fontSize: '0.6rem',
+              color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-fira-code)',
+            }}
+          >
             scroll to zoom · drag to pan
           </span>
 
           {/* Zoom controls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <button
               onClick={zoomOut}
               className="btn"
-              style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: "4px", cursor: "pointer", lineHeight: 1 }}
+              style={{
+                fontSize: '0.7rem',
+                padding: '0.15rem 0.4rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'var(--text-secondary)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                lineHeight: 1,
+              }}
             >
               −
             </button>
-            <span style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontFamily: "var(--font-fira-code)", width: "3rem", textAlign: "center" }}>
+            <span
+              style={{
+                fontSize: '0.6rem',
+                color: 'var(--text-secondary)',
+                fontFamily: 'var(--font-fira-code)',
+                width: '3rem',
+                textAlign: 'center',
+              }}
+            >
               {zoomLevel}%
             </span>
             <button
               onClick={zoomIn}
               className="btn"
-              style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: "4px", cursor: "pointer", lineHeight: 1 }}
+              style={{
+                fontSize: '0.7rem',
+                padding: '0.15rem 0.4rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'var(--text-secondary)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                lineHeight: 1,
+              }}
             >
               +
             </button>
@@ -776,11 +949,25 @@ export default function IntersectionVisualizer({ signals }: Props) {
           <button
             onClick={resetView}
             className="btn"
-            style={{ fontSize: "0.65rem", padding: "0.2rem 0.5rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: "4px", cursor: "pointer" }}
+            style={{
+              fontSize: '0.65rem',
+              padding: '0.2rem 0.5rem',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'var(--text-secondary)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
           >
             reset view
           </button>
-          <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)", fontFamily: "var(--font-fira-code)" }}>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-fira-code)',
+            }}
+          >
             4-WAY · TOP-DOWN
           </span>
         </div>
@@ -791,65 +978,67 @@ export default function IntersectionVisualizer({ signals }: Props) {
         ref={containerRef}
         style={{
           flex: 1,
-          overflow: "hidden",
-          borderRadius: "8px",
-          cursor: "grab",
-          background: "rgba(0,0,0,0.3)",
-          position: "relative",
+          overflow: 'hidden',
+          borderRadius: '8px',
+          cursor: 'grab',
+          background: 'rgba(0,0,0,0.3)',
+          position: 'relative',
         }}
       >
         <div
           ref={wrapRef}
-          style={{ transformOrigin: "0 0", display: "inline-block", lineHeight: 0 }}
+          style={{ transformOrigin: '0 0', display: 'inline-block', lineHeight: 0 }}
         >
-          <canvas
-            ref={canvasRef}
-            width={W}
-            height={H}
-            style={{ display: "block" }}
-          />
+          <canvas ref={canvasRef} width={W} height={H} style={{ display: 'block' }} />
         </div>
 
         {/* Mini-map navigator (bottom right) */}
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             bottom: 12,
             right: 12,
-            borderRadius: "6px",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.12)",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-            background: "rgba(13, 17, 23, 0.85)",
-            backdropFilter: "blur(8px)",
+            borderRadius: '6px',
+            overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.12)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            background: 'rgba(13, 17, 23, 0.85)',
+            backdropFilter: 'blur(8px)',
           }}
         >
-          <canvas
-            ref={minimapRef}
-            width={140}
-            height={140}
-            style={{ display: "block" }}
-          />
+          <canvas ref={minimapRef} width={140} height={140} style={{ display: 'block' }} />
         </div>
 
         {/* Compass rose (top right) */}
-        <div style={{
-          position: "absolute",
-          top: 12,
-          right: 12,
-          width: 44,
-          height: 44,
-          borderRadius: "50%",
-          background: "rgba(13, 17, 23, 0.75)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backdropFilter: "blur(8px)",
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: 'rgba(13, 17, 23, 0.75)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             {/* N */}
-            <text x="14" y="7" textAnchor="middle" fill="#94a3b8" fontSize="7" fontWeight="bold" fontFamily="monospace">N</text>
+            <text
+              x="14"
+              y="7"
+              textAnchor="middle"
+              fill="#94a3b8"
+              fontSize="7"
+              fontWeight="bold"
+              fontFamily="monospace"
+            >
+              N
+            </text>
             {/* Arrow up */}
             <path d="M14 8 L12.5 12 L15.5 12 Z" fill="#ef4444" />
             {/* Arrow down */}
