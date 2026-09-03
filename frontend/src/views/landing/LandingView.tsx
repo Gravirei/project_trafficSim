@@ -69,10 +69,10 @@ export function LandingView() {
         <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
           NETWORK MAP
         </button>
-        <ThemeToggle />
         <button className="enter" onClick={() => enterJunction('cross')} aria-label="Enter control center for Central Cross junction">
           ENTER CONTROL CENTER
         </button>
+        <ThemeToggle />
       </nav>
 
       <header className="hero" id="top">
