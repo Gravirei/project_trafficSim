@@ -45,8 +45,8 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  min-width: 220px;
-  min-height: 420px;
+  width: 220px;
+  height: 420px;
 }
 #landing .heroPanel {
   position: absolute;
