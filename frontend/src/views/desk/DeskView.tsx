@@ -27,6 +27,7 @@ import { TelemetryPanel } from './TelemetryPanel';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import styles from './DeskView.module.css';
 import './desk.css';
+import { useTheme } from '@/hooks/useTheme';
 
 class DeskErrorBoundary extends Component<{ children: ReactNode; onError: (e: Error) => void }, { error: Error | null }> {
   state = { error: null as Error | null };
@@ -90,6 +91,23 @@ function DeskViewInner({ id }: { id: string }) {
   useLucideRefresh();
   const router = useRouter();
   const { showMap, showLanding } = useViewController();
+  const { theme } = useTheme();
+
+  // Sync sim day/night to the global theme: dark = night, light = day.
+  // Rebuild the static layer + log the transition when it changes.
+  useEffect(() => {
+    const Scur = SRef.current;
+    if (!Scur) return;
+    const wantNight = theme === 'dark';
+    if (Scur.night === wantNight) return;
+    Scur.night = wantNight;
+    staticCvRef.current = buildStaticLayer(Scur);
+    Scur.logs.unshift({
+      t: fmtClock(7 * 3600 + Scur.simT),
+      tag: 'sys',
+      msg: wantNight ? 'AMBIENT → NIGHT' : 'AMBIENT → DAY',
+    });
+  }, [theme]);
   const cvRef = useRef<HTMLCanvasElement | null>(null);
   const sparkRef = useRef<HTMLCanvasElement | null>(null);
   const bootElRef = useRef<HTMLDivElement | null>(null);
@@ -229,7 +247,6 @@ function DeskViewInner({ id }: { id: string }) {
     });
     bind('btnPause', () => togglePause());
     bind('btnReset', () => resetSim());
-    bind('btnDay', () => toggleNight());
     bind('btnMap', () => router.push('/map'));
     const seg = document.getElementById('segMode');
     if (seg) {
@@ -412,20 +429,6 @@ function DeskViewInner({ id }: { id: string }) {
     if (ip) ip.classList.toggle('hide', S.paused);
     if (iy) iy.classList.toggle('hide', !S.paused);
     if (chip) chip.classList.toggle('hide', !S.paused);
-  }
-  function toggleNight() {
-    if (!S) return;
-    S.night = !S.night;
-    staticCvRef.current = buildStaticLayer(S);
-    const im = document.getElementById('icMoon');
-    const is = document.getElementById('icSun');
-    if (im) im.classList.toggle('hide', S.night);
-    if (is) is.classList.toggle('hide', !S.night);
-    S.logs.unshift({
-      t: fmtClock(7 * 3600 + S.simT),
-      tag: 'sys',
-      msg: S.night ? 'AMBIENT → NIGHT' : 'AMBIENT → DAY',
-    });
   }
   function resetSim() {
     if (!S) return;
@@ -636,15 +639,6 @@ function DeskViewInner({ id }: { id: string }) {
             <i data-lucide="rotate-ccw" /> RESET
           </button>
           <ThemeToggle />
-          <button
-            className={styles.tbBtn}
-            id="btnDay"
-            aria-label="Toggle day/night ambient lighting"
-            aria-pressed="false"
-          >
-            <i data-lucide="moon" id="icMoon" />
-            <i data-lucide="sun" id="icSun" className="hide" />
-          </button>
           <span className={styles.clock} id="clock" role="timer" aria-label="Simulation clock">
             07:00:00
           </span>
