@@ -91,7 +91,8 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
       ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
     }
     const { W, H } = sizeRef.current;
-    ctx.fillStyle = '#131519';
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    ctx.fillStyle = isLight ? '#c9c5b7' : '#131519';
     ctx.fillRect(0, 0, W, H);
     const [wx0, wy0] = s2w(0, 0);
     const [wx1, wy1] = s2w(W, H);
@@ -154,7 +155,7 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
       ctx.beginPath();
       ctx.arc(mx, my, hoverRef.current === id ? 9 : 7, 0, 7);
       ctx.fill();
-      ctx.fillStyle = '#131519';
+      ctx.fillStyle = isLight ? '#c9c5b7' : '#131519';
       ctx.beginPath();
       ctx.arc(mx, my, 3, 0, 7);
       ctx.fill();
@@ -168,7 +169,7 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
       ctx.strokeStyle = '#2b2e35';
       ctx.lineWidth = 1;
       ctx.strokeRect(lx - 6.5, ly - 9.5, tw + 13, 19);
-      ctx.fillStyle = '#e9e6dd';
+      ctx.fillStyle = isLight ? '#1a1a18' : '#e9e6dd';
       ctx.textAlign = 'left';
       ctx.fillText(txt, lx, ly);
       ctx.font = '400 8px "IBM Plex Mono",monospace';

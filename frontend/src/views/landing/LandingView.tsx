@@ -2,6 +2,7 @@
 
 import { useLucideRefresh } from '@/hooks/useLucide';
 import { useViewController } from '@/hooks/useViewController';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AnimatedSignal } from './AnimatedSignal';
 import { CycleBar } from './CycleBar';
 import { Ticker } from './Ticker';
@@ -68,6 +69,7 @@ export function LandingView() {
         <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
           NETWORK MAP
         </button>
+        <ThemeToggle />
         <button className="enter" onClick={() => enterJunction('cross')} aria-label="Enter control center for Central Cross junction">
           ENTER CONTROL CENTER
         </button>

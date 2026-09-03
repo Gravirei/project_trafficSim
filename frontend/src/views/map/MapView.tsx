@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
 import { useLucideRefresh } from '@/hooks/useLucide';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useMapController, MapJunctionState } from './useMapController';
 import { MapJunctionList } from './MapJunctionList';
 import styles from './MapView.module.css';
@@ -47,6 +48,7 @@ export function MapView() {
           <button className={styles.tbBtn} onClick={ctl.fit} aria-label="Fit network to viewport">
             <i data-lucide="maximize" /> FIT
           </button>
+          <ThemeToggle />
           <span className={styles.clock} id="mapClock" role="timer" aria-label="Network clock">
             07:00:00
           </span>

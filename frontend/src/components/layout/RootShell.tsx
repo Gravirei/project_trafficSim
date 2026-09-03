@@ -3,6 +3,7 @@
 import { useEffect, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { ViewProvider } from '@/hooks/useViewController';
+import { ThemeProvider } from '@/hooks/useTheme';
 
 export function RootShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -18,5 +19,9 @@ export function RootShell({ children }: { children: ReactNode }) {
     }
   }, [pathname]);
 
-  return <ViewProvider>{children}</ViewProvider>;
+  return (
+    <ThemeProvider>
+      <ViewProvider>{children}</ViewProvider>
+    </ThemeProvider>
+  );
 }

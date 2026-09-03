@@ -24,6 +24,7 @@ import type { SimState } from '@/lib/sim/types';
 import { ControlPanel } from './ControlPanel';
 import { Stage } from './Stage';
 import { TelemetryPanel } from './TelemetryPanel';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import styles from './DeskView.module.css';
 import './desk.css';
 
@@ -182,7 +183,7 @@ function DeskViewInner({ id }: { id: string }) {
 
   // Bind buttons & keyboard & boot
   // eslint-disable-next-line no-console
-  console.log('[DeskView] useEffect[bind] run, speed:', S.G.speed);
+  console.log('[DeskView] useEffect[bind] run, speed:', S?.G?.speed);
   useEffect(() => {
     if (!S) return;
     const bind = (id: string, fn: () => void) => {
@@ -634,6 +635,7 @@ function DeskViewInner({ id }: { id: string }) {
           <button className={styles.tbBtn} id="btnReset" aria-label="Reset simulation">
             <i data-lucide="rotate-ccw" /> RESET
           </button>
+          <ThemeToggle />
           <button
             className={styles.tbBtn}
             id="btnDay"

@@ -6,20 +6,49 @@
  * Component-specific rules live in CSS modules next to each component.
  * ====================================================================== */
 
-:root {
+:root,
+[data-theme='dark'] {
   --bg: #101114;
   --bg2: #15171b;
   --bg3: #0c0d0f;
+  --bg-canvas: #131519;
+  --bg-canvas2: #0c0d0f;
   --ink: #e9e6dd;
   --mut: #8b8a84;
   --dim: #5c5b55;
   --line: #26282e;
+  --line2: #1a1c20;
+  --paper: #b7b3a6;
   --amber: #f0a63c;
   --red: #e5484d;
   --grn: #4fc47a;
   --yel: #f2b13c;
+  --noise: 0.04;
+  --shadow: rgba(0, 0, 0, 0.5);
   --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
   --disp: 'Overpass', sans-serif;
+}
+
+/* Light theme — warm gray, not pure white. Mirrors the gray palette
+   used in the map's junction markers and road surfaces. */
+[data-theme='light'] {
+  --bg: #d6d2c4;
+  --bg2: #e3e0d3;
+  --bg3: #cecabb;
+  --bg-canvas: #c9c5b7;
+  --bg-canvas2: #b8b4a4;
+  --ink: #1a1a18;
+  --mut: #5a5a55;
+  --dim: #8a8a82;
+  --line: #b8b4a4;
+  --line2: #a09c8c;
+  --paper: #a09c8c;
+  --amber: #d97706;
+  --red: #c0353a;
+  --grn: #2f8a4d;
+  --yel: #b8860b;
+  --noise: 0.02;
+  --shadow: rgba(0, 0, 0, 0.15);
 }
 
 * {
@@ -44,7 +73,7 @@ body::after {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: var(--noise);
   z-index: 999;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -78,6 +107,20 @@ i[data-lucide] {
 }
 body:not([data-view='landing']) {
   overflow: hidden;
+}
+
+/* Light theme overrides for the noise overlay — keeps subtle texture
+   in light mode too, just at a lower opacity. */
+[data-theme='light'] body::after {
+  opacity: 0.03;
+  mix-blend-mode: multiply;
+}
+
+/* Bootstrap page color so the initial paint matches the theme (avoids
+   a dark flash on light mode). */
+html {
+  background: var(--bg);
+  color: var(--ink);
 }
 
 /* ----------------------------------------------------------------------
