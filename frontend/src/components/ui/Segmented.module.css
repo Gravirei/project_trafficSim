@@ -1,0 +1,22 @@
+.seg3 {
+  display: flex;
+  border: 1px solid var(--line);
+}
+.seg3 button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--mut);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 10px 4px;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+}
+.seg3 button:last-child { border-right: none; }
+.seg3 button.on {
+  background: var(--amber);
+  color: #131313;
+  font-weight: 600;
+}

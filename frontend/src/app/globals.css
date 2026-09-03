@@ -1,123 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+/* ========================================================================
+ * GREENWAVE — global stylesheet
+ * Source of truth: traffic.html lines 10-284.
+ * Verbatim port of design tokens, reset, body, view-toggle rules, and
+ * shared primitives (button, panel, slider, segmented, chip, hint).
+ * Component-specific rules live in CSS modules next to each component.
+ * ====================================================================== */
 
 :root {
-  --font-fira-sans: 'Fira Sans', sans-serif;
-  --font-fira-code: 'Fira Code', monospace;
-  
-  --bg-primary: #050505;
-  --bg-card: #0f1115;
-  --bg-card-hover: #1a1d24;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  
-  --accent-primary: #1e40af;
-  --accent-secondary: #3b82f6;
-  --cta: #f59e0b;
-  
-  --accent-green: #10b981;
-  --accent-yellow: #f59e0b;
-  --accent-red: #ef4444;
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
-
-  --border: #1e293b;
-}
-
-html, body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-fira-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg: #101114;
+  --bg2: #15171b;
+  --bg3: #0c0d0f;
+  --ink: #e9e6dd;
+  --mut: #8b8a84;
+  --dim: #5c5b55;
+  --line: #26282e;
+  --amber: #f0a63c;
+  --red: #e5484d;
+  --grn: #4fc47a;
+  --yel: #f2b13c;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --disp: 'Overpass', sans-serif;
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+html {
+  scroll-behavior: smooth;
 }
 
-/* Glassmorphism utility for cards */
-.glass-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.2s ease;
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--disp);
+  -webkit-font-smoothing: antialiased;
 }
 
-.glass-panel:hover {
-  background: var(--bg-card-hover);
-  border-color: #334155;
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.interactive {
-  cursor: pointer;
-}
-
-/* UI/UX Pro Max rules applied */
-button, .interactive {
-  transition: all 0.2s ease;
-}
-
-/* Base button styles */
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
+button {
   font-family: inherit;
-  font-size: 0.9rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  cursor: pointer;
 }
 
-.btn-primary {
-  background-color: var(--accent-primary);
-  color: white;
-}
-.btn-primary:hover {
-  background-color: var(--accent-secondary);
+i[data-lucide] {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
 }
 
-.btn-cta {
-  background-color: var(--cta);
-  color: #0f172a;
-}
-.btn-cta:hover {
-  background-color: #fbbf24;
+.hide {
+  display: none !important;
 }
 
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+/* ----------------------------------------------------------------------
+ * View layout & overflow settings.
+ * ---------------------------------------------------------------------- */
+#landing {
+  display: block;
 }
-.btn-outline:hover {
-  border-color: var(--text-secondary);
-  background-color: rgba(255,255,255,0.05);
+#mapview {
+  display: flex;
+}
+#control {
+  display: flex;
+}
+body:not([data-view='landing']) {
+  overflow: hidden;
 }
 
-.metrics-value {
-  font-family: var(--font-fira-code), monospace;
-  font-weight: 600;
-  font-size: 1.5rem;
-  color: var(--text-primary);
+/* ----------------------------------------------------------------------
+ * Focus ring — accessibility.
+ * ---------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
-.metrics-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+/* ----------------------------------------------------------------------
+ * Reduced motion.
+ * ---------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

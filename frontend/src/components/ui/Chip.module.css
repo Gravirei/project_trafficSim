@@ -1,0 +1,16 @@
+.chip {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  padding: 6px 10px;
+  background: rgba(12, 13, 15, 0.85);
+  border: 1px solid var(--line);
+  color: var(--mut);
+  text-transform: uppercase;
+}
+.cG { color: var(--grn); border-color: var(--grn); }
+.cY { color: var(--yel); border-color: var(--yel); }
+.cR { color: var(--red); border-color: var(--red); }
+.cP { color: #7fe3a8; border-color: #7fe3a8; }
+.cE { color: var(--red); border-color: var(--red); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }

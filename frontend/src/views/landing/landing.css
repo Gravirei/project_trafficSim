@@ -1,0 +1,118 @@
+/* ========================================================================
+ * Landing page — plain global stylesheet (not a CSS module).
+ *
+ * Why global: the LandingView renders SVG + inner elements with literal
+ * class names (`lamp`, `lampR`, `pole`, `housing`, `ticker`, `tkIn`,
+ * `cbar`, `playhead`, etc.) inherited verbatim from the original
+ * `traffic.html` prototype. CSS modules would mangle those names and
+ * the visual would break. Scoping is provided by the body's
+ * `data-view` attribute via the rule in `globals.css`.
+ * ====================================================================== */
+
+/* Nav */
+#landing nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; gap: 28px; padding: 0 28px; height: 58px; background: rgba(16, 17, 20, 0.82); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+#landing .brand { font-family: var(--mono); font-weight: 600; font-size: 13px; letter-spacing: 0.22em; color: var(--ink); text-decoration: none; }
+#landing .brand b { color: var(--amber); }
+#landing .links { display: flex; gap: 22px; margin-left: auto; }
+#landing .links a { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--mut); text-decoration: none; text-transform: uppercase; }
+#landing .links a:hover { color: var(--amber); }
+#landing .ghostbtn { margin-left: 12px; background: transparent; color: var(--ink); border: 1px solid #3a3d45; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; padding: 9px 14px; cursor: pointer; }
+#landing .ghostbtn:hover { border-color: var(--amber); color: var(--amber); }
+#landing .enter { margin-left: 24px; background: var(--amber); color: #131313; border: none; font-family: var(--mono); font-weight: 600; font-size: 10.5px; letter-spacing: 0.14em; padding: 9px 14px; cursor: pointer; }
+#landing .enter:hover { background: #ffc063; }
+@media (max-width: 960px) { #landing .links, #landing .ghostbtn { display: none; } }
+
+/* Hero */
+#landing .hero { position: relative; min-height: 100vh; display: grid; grid-template-columns: 1.15fr 0.85fr; align-items: center; gap: 40px; max-width: 1180px; margin: 0 auto; padding: 120px 28px 80px; overflow: hidden; }
+#landing .hero::before { content: ''; position: absolute; inset: 0; opacity: 0.07; pointer-events: none; background-image: repeating-linear-gradient(90deg, transparent 0 78px, #fff 78px 84px, transparent 84px 220px); background-size: 220px 100%; animation: lanes 9s linear infinite; }
+@keyframes lanes { to { background-position: 0 220px; } }
+#landing .heroL { position: relative; z-index: 2; }
+#landing .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em; color: var(--amber); text-transform: uppercase; margin-bottom: 26px; }
+#landing .eyebrow::before { content: ''; display: inline-block; width: 26px; height: 1px; background: var(--amber); vertical-align: middle; margin-right: 12px; }
+#landing h1 { font-weight: 900; text-transform: uppercase; font-size: clamp(52px, 8.4vw, 118px); line-height: 0.9; letter-spacing: -0.015em; }
+#landing h1 em { font-style: normal; color: var(--amber); }
+#landing .sub { max-width: 540px; margin-top: 30px; color: var(--mut); font-size: 16.5px; line-height: 1.65; }
+#landing .sub b { color: var(--ink); font-weight: 700; }
+#landing .ctaRow { display: flex; gap: 14px; margin-top: 38px; flex-wrap: wrap; justify-content: center; }
+#landing .btnPrimary { background: var(--amber); color: #131313; border: none; font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: 0.14em; padding: 16px 24px; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+#landing .btnPrimary:hover { background: #ffc063; transform: translateY(-1px); }
+#landing .btnGhost { background: transparent; color: var(--ink); border: 1px solid #3a3d45; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; padding: 16px 24px; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+#landing .btnGhost:hover { border-color: var(--amber); color: var(--amber); }
+#landing .spec { margin-top: 44px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--dim); }
+#landing .heroR { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 18px; justify-self: center; }
+#landing .sig { width: min(190px, 34vw); }
+#landing .pole { fill: #26282e; }
+#landing .housing { fill: #17191d; stroke: #34373f; stroke-width: 2; }
+#landing .lamp { fill: #22242a; stroke: #1a1c20; transition: fill 0.25s; }
+#landing .lampR.on { fill: #e5484d; filter: drop-shadow(0 0 16px rgba(229, 72, 77, 0.75)); }
+#landing .lampY.on { fill: #f2b13c; filter: drop-shadow(0 0 16px rgba(242, 177, 60, 0.75)); }
+#landing .lampG.on { fill: #4fc47a; filter: drop-shadow(0 0 16px rgba(79, 196, 122, 0.75)); }
+#landing .sigCount { font-family: var(--mono); font-size: 34px; font-weight: 600; color: var(--amber); letter-spacing: 0.05em; }
+#landing .sigCap { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--mut); text-transform: uppercase; text-align: center; min-height: 16px; }
+@media (max-width: 900px) { #landing .hero { grid-template-columns: 1fr; padding-top: 110px; } #landing .heroR { display: none; } }
+
+/* Ticker */
+#landing .ticker { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; background: var(--bg3); }
+#landing .tkIn { display: flex; width: max-content; animation: tick 46s linear infinite; padding: 11px 0; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.22em; color: var(--mut); text-transform: uppercase; white-space: nowrap; }
+#landing .ticker:hover .tkIn { animation-play-state: paused; }
+#landing .tkIn span { padding: 0 26px; }
+#landing .tkIn i { color: var(--amber); font-style: normal; }
+@keyframes tick { to { transform: translateX(-50%); } }
+
+/* Sections */
+#landing .sec { max-width: 1180px; margin: 0 auto; padding: 110px 28px 40px; }
+#landing .sec h2 { font-weight: 800; text-transform: uppercase; font-size: clamp(30px, 4vw, 52px); letter-spacing: -0.01em; line-height: 1; margin: 14px 0 18px; }
+#landing .lede { max-width: 640px; color: var(--mut); line-height: 1.7; font-size: 16px; }
+#landing .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); margin-top: 44px; }
+#landing .stat { padding: 38px 34px; border-left: 1px solid var(--line); }
+#landing .stat:first-child { border-left: none; }
+#landing .n { font-weight: 900; font-size: clamp(48px, 5vw, 76px); letter-spacing: -0.02em; line-height: 1; }
+#landing .n b { color: var(--amber); font-weight: 900; }
+#landing .u { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--amber); margin: 16px 0 10px; text-transform: uppercase; }
+#landing .stat p { color: var(--mut); font-size: 13.5px; line-height: 1.6; }
+#landing .footnote { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 0.08em; margin-top: 14px; max-width: 760px; line-height: 1.7; }
+@media (max-width: 860px) { #landing .stats { grid-template-columns: 1fr; } #landing .stat { border-left: none; border-top: 1px solid var(--line); } }
+
+/* Cycle bar */
+#landing .cbar { display: flex; height: 54px; border: 1px solid var(--line); margin-top: 44px; position: relative; cursor: crosshair; }
+#landing .playhead { position: absolute; top: -8px; bottom: -8px; width: 2px; background: var(--amber); z-index: 2; pointer-events: none; }
+#landing .playhead::after { content: ''; position: absolute; top: -5px; left: -4px; border: 5px solid transparent; border-top-color: var(--amber); }
+#landing .cgrpRow { display: flex; margin-top: 6px; }
+#landing .cgrp { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--mut); padding: 6px 0 0; text-transform: uppercase; }
+#landing .readout { display: flex; gap: 34px; align-items: baseline; margin-top: 22px; flex-wrap: wrap; font-family: var(--mono); }
+#landing .iv { font-size: 15px; font-weight: 600; letter-spacing: 0.1em; }
+#landing .rem { font-size: 26px; color: var(--amber); }
+#landing .desc { font-size: 11px; color: var(--mut); max-width: 520px; line-height: 1.7; letter-spacing: 0.03em; }
+#landing .legend { display: flex; gap: 26px; margin-top: 26px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--mut); }
+#landing .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 8px; vertical-align: -1px; }
+
+/* Field */
+#landing .field { display: grid; grid-template-columns: repeat(12, 1fr); gap: 26px; margin-top: 52px; }
+#landing .fig img { width: 100%; display: block; filter: grayscale(1) sepia(0.4) hue-rotate(-12deg) saturate(2.4) brightness(0.82) contrast(1.08); transition: filter 0.5s; border: 1px solid var(--line); }
+#landing .fig:hover img { filter: grayscale(0) sepia(0) brightness(0.94) contrast(1.02); }
+#landing .cap { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; color: var(--mut); padding-top: 10px; text-transform: uppercase; border-top: 1px solid var(--line); margin-top: 10px; }
+#landing .cap b { color: var(--amber); font-weight: 500; }
+#landing .f1 { grid-column: 1 / 8; }
+#landing .f2 { grid-column: 8 / 13; margin-top: 84px; }
+#landing .f3 { grid-column: 2 / 7; margin-top: 64px; }
+#landing .fnote { grid-column: 8 / 12; margin-top: 110px; }
+#landing .fnote p { color: var(--mut); line-height: 1.75; font-size: 15px; }
+#landing .monoT { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--amber); text-transform: uppercase; margin-bottom: 18px; }
+@media (max-width: 860px) { #landing .f1, #landing .f2, #landing .f3, #landing .fnote { grid-column: 1 / 13; margin-top: 26px; } }
+
+/* Why */
+#landing .why { margin-top: 20px; }
+#landing .wrow { display: grid; grid-template-columns: 110px 300px 1fr; gap: 28px; padding: 38px 0; border-top: 1px solid var(--line); align-items: baseline; }
+#landing .wrow:last-child { border-bottom: 1px solid var(--line); }
+#landing .no { font-family: var(--mono); color: var(--amber); font-size: 13px; letter-spacing: 0.2em; }
+#landing .wrow h3 { font-weight: 800; text-transform: uppercase; font-size: 21px; line-height: 1.15; }
+#landing .wrow p { color: var(--mut); line-height: 1.7; font-size: 14.5px; }
+@media (max-width: 860px) { #landing .wrow { grid-template-columns: 60px 1fr; } #landing .wrow p { grid-column: 2; } }
+
+/* CTA Band */
+#landing .ctaband { position: relative; text-align: center; padding: 150px 28px; overflow: hidden; border-top: 1px solid var(--line); }
+#landing .ctaband::before { content: ''; position: absolute; inset: 0; opacity: 0.06; background-image: repeating-linear-gradient(90deg, transparent 0 78px, #fff 78px 84px, transparent 84px 220px); background-size: 220px 100%; animation: lanes 9s linear infinite; }
+#landing .ctaband h2 { font-weight: 900; text-transform: uppercase; font-size: clamp(44px, 7vw, 96px); letter-spacing: -0.015em; line-height: 0.95; }
+#landing .ctaband p { color: var(--mut); margin: 24px auto 38px; max-width: 560px; line-height: 1.7; }
+
+#landing footer { border-top: 1px solid var(--line); padding: 26px 28px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--dim); text-transform: uppercase; }

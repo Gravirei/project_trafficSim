@@ -1,0 +1,117 @@
+/* ========================================================================
+ * Control Desk — plain global stylesheet (scoped under #control).
+ *
+ * Why global, not CSS Module: DeskView.tsx injects many sub-elements via
+ * innerHTML (pseg, qrow, pev, lg, tag, sl, etc.), with literal class names
+ * that CSS Modules would mangle. Scoping is provided by the #control
+ * ancestor, matching the prototype exactly.
+ * ====================================================================== */
+
+/* ── shared panel primitives ─────────────────────────────────────────── */
+#control .panel { background: var(--bg2); border: 1px solid var(--line); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2c2f36 transparent; }
+#control .panel::-webkit-scrollbar { width: 6px; }
+#control .panel::-webkit-scrollbar-thumb { background: #2c2f36; }
+#control .ph { font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; color: var(--mut); text-transform: uppercase; padding: 12px 14px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+#control .ph i, #control .ph svg { color: var(--amber); }
+#control .blk { padding: 14px; border-bottom: 1px solid var(--line); }
+#control .blk:last-child { border-bottom: none; }
+#control .hint { font-family: var(--mono); font-size: 9.5px; color: var(--dim); line-height: 1.7; letter-spacing: .04em; margin-top: 10px; }
+
+/* ── segmented control ───────────────────────────────────────────────── */
+#control .seg3 { display: flex; border: 1px solid var(--line); }
+#control .seg3 button { flex: 1; background: transparent; border: none; color: var(--mut); font-family: var(--mono); font-size: 10px; letter-spacing: .1em; padding: 10px 4px; border-right: 1px solid var(--line); cursor: pointer; }
+#control .seg3 button:last-child { border-right: none; }
+#control .seg3 button.on { background: var(--amber); color: #131313; font-weight: 600; }
+
+/* ── buttons ─────────────────────────────────────────────────────────── */
+#control .btn { width: 100%; background: #191b20; border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; padding: 11px 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; cursor: pointer; }
+#control .btn:hover { border-color: var(--amber); color: var(--amber); }
+#control .btn.pri { background: var(--amber); color: #131313; font-weight: 600; border-color: var(--amber); }
+#control .btn.pri:hover { background: #ffc063; color: #131313; }
+
+/* ── sliders ─────────────────────────────────────────────────────────── */
+#control .sl { margin-bottom: 13px; }
+#control .sl label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--mut); text-transform: uppercase; margin-bottom: 7px; }
+#control .sl label b { color: var(--ink); font-weight: 500; }
+#control input[type=range] { -webkit-appearance: none; width: 100%; height: 3px; background: #2a2d33; outline: none; }
+#control input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--amber); border: none; cursor: pointer; }
+#control input[type=range]::-moz-range-thumb { width: 12px; height: 12px; background: var(--amber); border: none; cursor: pointer; border-radius: 0; }
+
+/* ── phase strip ─────────────────────────────────────────────────────── */
+#control .strip { display: flex; gap: 4px; margin-bottom: 12px; }
+#control .pseg { flex: 1; border: 1px solid var(--line); padding: 7px 8px 8px; min-width: 0; cursor: pointer; }
+#control .pseg .pn { font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em; color: var(--dim); }
+#control .pseg .pl { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; color: var(--mut); margin: 3px 0 6px; white-space: nowrap; overflow: hidden; }
+#control .pseg .tr { height: 3px; background: #22242a; }
+#control .pseg .tr i { display: block; height: 100%; background: var(--amber); width: 0%; }
+#control .pseg.on { border-color: var(--amber); }
+#control .pseg.on .pl { color: var(--ink); }
+#control .pseg:hover { border-color: var(--mut); }
+#control .bigphase { font-family: var(--mono); font-size: 15px; letter-spacing: .06em; margin-bottom: 8px; }
+#control .meta { font-family: var(--mono); font-size: 9.5px; color: var(--dim); letter-spacing: .1em; line-height: 1.9; text-transform: uppercase; }
+#control .meta b { color: var(--mut); font-weight: 500; }
+
+/* ── queue depth rows ────────────────────────────────────────────────── */
+#control .qrow { display: grid; grid-template-columns: 64px 1fr 26px; gap: 10px; align-items: center; margin-bottom: 9px; }
+#control .qrow .ql { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--mut); }
+#control .qrow .qt { height: 8px; background: #22242a; position: relative; }
+#control .qrow .qt i { position: absolute; inset: 0 auto 0 0; background: var(--amber); width: 0%; }
+#control .qrow.hi .qt i { background: var(--red); }
+#control .qrow .qc { font-family: var(--mono); font-size: 11px; color: var(--ink); text-align: right; }
+
+/* ── measures / stats grid ───────────────────────────────────────────── */
+#control .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+#control .sg { background: var(--bg2); padding: 11px 12px; }
+#control .sg .k { font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; color: var(--dim); text-transform: uppercase; }
+#control .sg .v { font-family: var(--mono); font-size: 20px; color: var(--ink); margin-top: 5px; }
+#control .sg .v b { color: var(--amber); font-weight: 500; font-size: 11px; }
+#control #spark { display: block; width: 100%; margin-top: 10px; }
+#control .spark-cap { font-family: var(--mono); font-size: 8.5px; letter-spacing: .16em; color: var(--dim); margin-top: 6px; text-transform: uppercase; }
+
+/* ── event log ───────────────────────────────────────────────────────── */
+#control .log { font-family: var(--mono); font-size: 9.5px; line-height: 1.5; max-height: 230px; overflow-y: auto; letter-spacing: .03em; }
+#control .log::-webkit-scrollbar { width: 5px; }
+#control .log::-webkit-scrollbar-thumb { background: #2c2f36; }
+#control .lg { padding: 5px 0; border-bottom: 1px dotted #22242a; color: var(--mut); display: flex; gap: 9px; }
+#control .lg .t { color: var(--dim); flex: none; }
+#control .tag { flex: none; padding: 0 5px; border: 1px solid; font-size: 8px; letter-spacing: .1em; height: 13px; line-height: 13px; }
+#control .tag.phase { color: var(--amber); border-color: var(--amber); }
+#control .tag.ev { color: var(--red); border-color: var(--red); }
+#control .tag.ped { color: #7fe3a8; border-color: #7fe3a8; }
+#control .tag.mode { color: #7aa2c4; border-color: #7aa2c4; }
+#control .tag.sys { color: var(--dim); border-color: var(--dim); }
+
+/* ── preempt grid ────────────────────────────────────────────────────── */
+#control .pev-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+#control .pev-grid.t3 { grid-template-columns: repeat(3,1fr); }
+#control .pev { background: #191b20; border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 11px; padding: 9px 0; letter-spacing: .05em; cursor: pointer; }
+#control .pev:hover { border-color: var(--red); color: var(--red); }
+
+/* ── demand block (dynamically built sliders) ────────────────────────── */
+#control #demandBlk .sl { margin-bottom: 13px; }
+
+/* ── boot overlay ────────────────────────────────────────────────────── */
+#control #boot { position: fixed; inset: 0; z-index: 200; background: var(--bg3); display: flex; align-items: center; justify-content: center; transition: opacity .45s; }
+#control #boot pre { font-family: var(--mono); font-size: 12px; color: var(--mut); line-height: 2.1; letter-spacing: .05em; white-space: pre-wrap; min-width: min(420px,80vw); }
+#control #boot .ok { color: var(--amber); }
+
+/* ── HUD chips (DOM-mutated, not React-state) ────────────────────────── */
+#control .chip { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; padding: 6px 10px; background: rgba(12,13,15,.85); border: 1px solid var(--line); color: var(--mut); text-transform: uppercase; }
+#control .chip.cG { color: var(--grn); border-color: var(--grn); }
+#control .chip.cY { color: var(--yel); border-color: var(--yel); }
+#control .chip.cR { color: var(--red); border-color: var(--red); }
+#control .chip.cP { color: #7fe3a8; border-color: #7fe3a8; }
+#control .chip.cE { color: var(--red); border-color: var(--red); animation: deskBlink 1s steps(2) infinite; }
+@keyframes deskBlink { 50% { opacity: .35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #control .chip.cE { animation: none; }
+}
+
+/* ── speed buttons (global .on class, cannot use CSS Module) ───────── */
+#control .spd { display: flex; border: 1px solid var(--line); }
+#control .spd button { background: transparent; border: none; color: var(--mut); font-family: var(--mono); font-size: 10px; padding: 8px 9px; cursor: pointer; }
+#control .spd button.on { background: var(--amber); color: #131313; font-weight: 600; }
+
+/* ── lucide icon sizing ─────────────────────────────────────────────── */
+#control i[data-lucide], #control svg[data-lucide] { width: 14px; height: 14px; stroke-width: 2; }

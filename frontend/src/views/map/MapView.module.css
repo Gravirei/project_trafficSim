@@ -1,0 +1,34 @@
+.mapview { display: flex; height: 100vh; flex-direction: column; background: var(--bg3); }
+.mapbody { flex: 1; min-height: 0; display: flex; }
+.mapside { width: 256px; background: var(--bg2); border-right: 1px solid var(--line); overflow-y: auto; flex: none; scrollbar-width: thin; }
+.mapside::-webkit-scrollbar { width: 6px; }
+.mapside::-webkit-scrollbar-thumb { background: #2c2f36; }
+.mrow { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.mrow:hover { background: #191b20; }
+.mcode { font-family: var(--mono); color: var(--amber); font-size: 12px; font-weight: 600; min-width: 30px; }
+.mtxt { min-width: 0; flex: 1; }
+.mtxt b { display: block; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtxt span { font-family: var(--mono); font-size: 8.5px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.mdot { width: 8px; height: 8px; border-radius: 50%; background: var(--grn); flex: none; }
+.mopen { background: transparent; border: 1px solid var(--line); color: var(--amber); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 6px 8px; flex: none; cursor: pointer; }
+.mopen:hover { border-color: var(--amber); background: rgba(240, 166, 60, 0.08); }
+.mapstage { flex: 1; position: relative; min-width: 0; background: #131519; }
+.mapcv { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.maplegend { position: absolute; left: 14px; bottom: 14px; background: rgba(13, 15, 18, 0.9); border: 1px solid var(--line); padding: 10px 14px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; color: var(--mut); text-transform: uppercase; line-height: 2; pointer-events: none; }
+.maplegend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.maphint { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; color: #5c5b55; text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+.ph { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.24em; color: var(--mut); text-transform: uppercase; padding: 12px 14px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+.ph i, .ph svg { color: var(--amber); }
+.blk { padding: 14px; border-bottom: 1px solid var(--line); }
+.hint { font-family: var(--mono); font-size: 9.5px; color: var(--dim); line-height: 1.7; letter-spacing: 0.04em; }
+
+.topbar { height: 54px; display: flex; align-items: center; gap: 12px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--line); flex: none; }
+.tbBtn { background: transparent; border: 1px solid var(--line); color: var(--mut); padding: 8px 10px; display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; cursor: pointer; }
+.tbBtn:hover { color: var(--amber); border-color: var(--amber); }
+.tbTitle { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--ink); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbTitle b { color: var(--amber); }
+.modeChip { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; padding: 5px 9px; border: 1px solid var(--line); color: var(--mut); text-transform: uppercase; }
+.modeChip b { color: var(--amber); }
+.tbRight { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.clock { font-family: var(--mono); font-size: 14px; color: var(--amber); letter-spacing: 0.08em; min-width: 88px; text-align: right; }
+@media (max-width: 860px) { .mapside { width: 190px; } .maphint { display: none; } }

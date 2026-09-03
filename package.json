@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Root configuration to run full stack simultaneously",
   "private": true,
-  "packageManager": "npm@10.0.0",
   "workspaces": [
     "backend",
     "frontend"
