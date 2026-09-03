@@ -107,13 +107,16 @@ export function LandingView() {
           </div>
           <div className="spec">4 JUNCTION SHAPES · LIVE NETWORK MAP · ACTUATED CONTROL · PEDESTRIAN CALLS · EMERGENCY PREEMPTION</div>
         </div>
-        <div className={`heroR ${heroMode === 'login' ? 'loginMode' : 'signalMode'}`}>
-          <div className="heroPanel signalPanel">
-            <AnimatedSignal />
-          </div>
-          <div className="heroPanel loginPanel">
-            <HeroLoginForm />
-          </div>
+        <div className="heroR">
+          {heroMode === 'signal' ? (
+            <div className="heroSignal">
+              <AnimatedSignal />
+            </div>
+          ) : (
+            <div className="heroLoginSlot">
+              <HeroLoginForm />
+            </div>
+          )}
         </div>
       </header>
 
