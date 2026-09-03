@@ -181,6 +181,8 @@ function DeskViewInner({ id }: { id: string }) {
   }, [S]);
 
   // Bind buttons & keyboard & boot
+  // eslint-disable-next-line no-console
+  console.log('[DeskView] useEffect[bind] run, speed:', S.G.speed);
   useEffect(() => {
     if (!S) return;
     const bind = (id: string, fn: () => void) => {
@@ -251,12 +253,18 @@ function DeskViewInner({ id }: { id: string }) {
     }
     const spd = document.getElementById('spd');
     if (spd) {
+      const syncSpd = () => {
+        spd.querySelectorAll('button').forEach((b) => {
+          const active = +((b as HTMLElement).dataset.s || 1) === S.G.speed;
+          if (active) b.setAttribute('data-active', 'true');
+          else b.removeAttribute('data-active');
+        });
+      };
+      syncSpd();
       spd.querySelectorAll('button').forEach((b) => {
-        b.classList.toggle('on', +((b as HTMLElement).dataset.s || 1) === S.G.speed);
         b.addEventListener('click', () => {
           S.G.speed = +((b as HTMLElement).dataset.s || 1);
-          spd.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
-          b.classList.add('on');
+          syncSpd();
         });
       });
     }
@@ -615,7 +623,7 @@ function DeskViewInner({ id }: { id: string }) {
         <div className={styles.tbRight}>
           <div className={styles.spd} id="spd" role="radiogroup" aria-label="Simulation speed">
             <button data-s="0.5" aria-label="Half speed">½×</button>
-            <button data-s="1" aria-label="Normal speed" className="on">1×</button>
+            <button data-s="1" aria-label="Normal speed" data-active="true">1×</button>
             <button data-s="2" aria-label="Double speed">2×</button>
             <button data-s="4" aria-label="Quadruple speed">4×</button>
           </div>

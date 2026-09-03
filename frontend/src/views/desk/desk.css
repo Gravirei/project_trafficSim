@@ -111,7 +111,7 @@
 /* ── speed buttons (global .on class, cannot use CSS Module) ───────── */
 #control .spd { display: flex; border: 1px solid var(--line); }
 #control .spd button { background: transparent; border: none; color: var(--mut); font-family: var(--mono); font-size: 10px; padding: 8px 9px; cursor: pointer; }
-#control .spd button.on { background: var(--amber); color: #131313; font-weight: 600; }
+#control .spd button[data-active] { background: var(--amber); color: #131313; font-weight: 600; }
 
 /* ── lucide icon sizing ─────────────────────────────────────────────── */
 #control i[data-lucide], #control svg[data-lucide] { width: 14px; height: 14px; stroke-width: 2; }

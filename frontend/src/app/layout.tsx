@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import Script from 'next/script';
+import { RootShell } from '@/components/layout/RootShell';
 
 export const metadata: Metadata = {
   title: 'GREENWAVE — Traffic Signal Control Simulation',
@@ -13,8 +13,6 @@ export const viewport: Viewport = {
   initialScale: 1.0,
   themeColor: '#101114',
 };
-
-import { RootShell } from '@/components/layout/RootShell';
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -29,15 +27,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <RootShell>{children}</RootShell>
-        {/* Load Lucide after page is interactive, then immediately render icons */}
-        <Script
+        {/*
+          Lucide UMD bundle — defer so it loads after parsing, not blocking
+          first paint. Icons render once `window.lucide` is available
+          (handled by useLucideRefresh in each view).
+        */}
+        <script
           src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"
-          strategy="afterInteractive"
-          onLoad={() => {
-            if (typeof window !== 'undefined' && window.lucide) {
-              window.lucide.createIcons();
-            }
-          }}
+          defer
         />
       </body>
     </html>
