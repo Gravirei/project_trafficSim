@@ -109,11 +109,11 @@ export function LandingView() {
         </div>
         <div className="heroR">
           {heroMode === 'signal' ? (
-            <div className="heroSignal">
+            <div key="signal" className="heroSlot heroSignal">
               <AnimatedSignal />
             </div>
           ) : (
-            <div className="heroLoginSlot">
+            <div key="login" className="heroSlot heroLoginSlot">
               <HeroLoginForm />
             </div>
           )}
