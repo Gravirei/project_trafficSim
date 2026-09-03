@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useLucideRefresh } from '@/hooks/useLucide';
 import { useViewController } from '@/hooks/useViewController';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -7,6 +8,7 @@ import { AnimatedSignal } from './AnimatedSignal';
 import { CycleBar } from './CycleBar';
 import { Ticker } from './Ticker';
 import { Counter } from './Counter';
+import { HeroLoginForm } from './HeroLoginForm';
 import './landing.css';
 
 const FIGURES = [
@@ -56,6 +58,7 @@ const WHY_ROWS = [
 export function LandingView() {
   useLucideRefresh();
   const { enterJunction, showMap } = useViewController();
+  const [heroMode, setHeroMode] = useState<'signal' | 'login'>('signal');
   return (
     <div id="landing" className="landing">
       <nav aria-label="Primary">
@@ -67,6 +70,16 @@ export function LandingView() {
           <a href="#why">Why It Matters</a>
         </div>
         <div className="actions">
+          <button
+            className="loginbtn"
+            onClick={() => setHeroMode((m) => (m === 'signal' ? 'login' : 'signal'))}
+            aria-pressed={heroMode === 'login'}
+            aria-label={heroMode === 'login' ? 'Back to traffic signal' : 'Open admin login form'}
+            title={heroMode === 'login' ? 'Back to traffic signal' : 'Admin login'}
+          >
+            <i data-lucide={heroMode === 'login' ? 'arrow-left' : 'lock'} />
+            {heroMode === 'login' ? 'BACK' : 'LOGIN'}
+          </button>
           <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
             NETWORK MAP
           </button>
@@ -94,8 +107,13 @@ export function LandingView() {
           </div>
           <div className="spec">4 JUNCTION SHAPES · LIVE NETWORK MAP · ACTUATED CONTROL · PEDESTRIAN CALLS · EMERGENCY PREEMPTION</div>
         </div>
-        <div className="heroR">
-          <AnimatedSignal />
+        <div className={`heroR ${heroMode === 'login' ? 'loginMode' : 'signalMode'}`}>
+          <div className="heroPanel signalPanel">
+            <AnimatedSignal />
+          </div>
+          <div className="heroPanel loginPanel">
+            <HeroLoginForm />
+          </div>
         </div>
       </header>
 
