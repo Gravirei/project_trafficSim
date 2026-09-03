@@ -66,13 +66,15 @@ export function LandingView() {
           <a href="#field">Field Notes</a>
           <a href="#why">Why It Matters</a>
         </div>
-        <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
-          NETWORK MAP
-        </button>
-        <button className="enter" onClick={() => enterJunction('cross')} aria-label="Enter control center for Central Cross junction">
-          ENTER CONTROL CENTER
-        </button>
-        <ThemeToggle />
+        <div className="actions">
+          <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
+            NETWORK MAP
+          </button>
+          <button className="enter" onClick={() => enterJunction('cross')} aria-label="Enter control center for Central Cross junction">
+            ENTER CONTROL CENTER
+          </button>
+          <ThemeToggle />
+        </div>
       </nav>
 
       <header className="hero" id="top">

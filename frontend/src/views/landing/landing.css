@@ -18,7 +18,7 @@
 #landing .links a:hover { color: var(--amber); }
 #landing .ghostbtn { background: transparent; color: var(--ink); border: 1px solid #3a3d45; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; padding: 9px 14px; cursor: pointer; }
 #landing .ghostbtn:hover { border-color: var(--amber); color: var(--amber); }
-#landing .enter { margin-left: 10px; background: var(--amber); color: #131313; border: none; font-family: var(--mono); font-weight: 600; font-size: 10.5px; letter-spacing: 0.14em; padding: 9px 14px; cursor: pointer; }
+#landing .actions { display: flex; align-items: center; gap: 2px; }
 #landing .enter:hover { background: #ffc063; }
 @media (max-width: 960px) { #landing .links, #landing .ghostbtn { display: none; } }
 
