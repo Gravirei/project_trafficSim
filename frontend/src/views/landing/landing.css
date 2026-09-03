@@ -201,7 +201,7 @@
 #landing .btnGhost:hover { border-color: var(--amber); color: var(--amber); }
 #landing .spec { margin-top: 44px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--dim); }
 #landing .heroR { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 18px; justify-self: center; }
-#landing .sig { width: min(190px, 34vw); }
+#landing .sig { width: 100%; max-width: 220px; height: auto; }
 #landing .pole { fill: #26282e; }
 #landing .housing { fill: #17191d; stroke: #34373f; stroke-width: 2; }
 #landing .lamp { fill: #22242a; stroke: #1a1c20; transition: fill 0.25s; }
