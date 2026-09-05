@@ -146,6 +146,37 @@ function DeskViewInner({ id }: { id: string }) {
     };
   }, []);
 
+  // Phase 7: cold-reload backfill. If the sim is fresh (simT === 0 and
+  // no local logs), pull recent events from the backend so the desk UI
+  // isn't empty after a hard refresh of a running junction.
+  useEffect(() => {
+    if (!S) return;
+    if (S.simT !== 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (S.logs.length === 0) {
+          const events = await api.getEvents(S.J.id, 0, 70);
+          if (cancelled || S.simT !== 0) return;
+          for (const e of events.slice(-70)) {
+            S.logs.unshift({
+              t: new Date(e.recorded_at).toISOString().slice(11, 19),
+              tag: e.tag,
+              msg: e.msg,
+            });
+          }
+        }
+      } catch (err) {
+        // Best-effort; fall back to local sim.
+        // eslint-disable-next-line no-console
+        console.warn('[backfill] events failed', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [S, api]);
+
   // Build phase segments, queue rows, demand sliders
   useEffect(() => {
     if (!S) return;
