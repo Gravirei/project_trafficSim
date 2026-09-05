@@ -8,6 +8,7 @@ import { QueueHistoryModel } from './models/queueHistory.model';
 import { env } from './config/env';
 import { logger } from './config/logger';
 import { simulationEngine } from './engine/simulationEngine';
+import { auditRunner } from './engine/auditRunner';
 
 const PORT = env.PORT;
 
@@ -23,6 +24,11 @@ async function start(): Promise<void> {
     const result = await pool.query('SELECT NOW()');
     logger.info({ time: result.rows[0].now }, 'Database connected');
     await ensureDatabaseReady();
+
+    // Phase 3: start the audit runner alongside the legacy engine. The
+    // legacy engine remains for one release; it will be removed in Phase 8.
+    await auditRunner.initialize();
+    auditRunner.start();
 
     server.listen(PORT, () => {
       logger.info(`Traffic Signal Simulation Server listening on port ${PORT}`);
@@ -51,6 +57,7 @@ async function start(): Promise<void> {
       logger.info({ signal }, 'Shutting down gracefully');
       clearInterval(retentionInterval);
       simulationEngine.stop();
+      auditRunner.stop();
       server.close(async () => {
         try {
           await pool.end();
