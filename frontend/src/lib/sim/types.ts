@@ -8,7 +8,7 @@ export type Leg = number; // 0..n-1, indexes into JunctionDef.legs
 export type Move = 'L' | 'T' | 'R' | '*';
 export type Interval = 'G' | 'Y' | 'R' | 'WALK';
 export type Mode = 'fixed' | 'actuated' | 'manual';
-export type JunctionType = 'cross' | 'round' | 'y' | 't';
+export type JunctionType = 'cross' | 'round' | 'y' | 't' | 'penta';
 
 export interface Phase {
   name: string;
