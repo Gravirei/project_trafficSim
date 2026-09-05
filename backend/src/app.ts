@@ -12,6 +12,9 @@ import signalRoutes from './routes/signals.routes';
 import simulationRoutes from './routes/simulation.routes';
 import historyRoutes from './routes/history.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import junctionsRoutes from './routes/junctions.routes';
+import commandsRoutes from './routes/commands.routes';
+import telemetryRoutes from './routes/telemetry.routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './config/logger';
 import { setupOpenApi } from './config/openapi';
@@ -60,6 +63,9 @@ app.use('/api/signals', authenticate, signalRoutes);
 app.use('/api/simulation', authenticate, simulationRoutes);
 app.use('/api/history', authenticate, historyRoutes);
 app.use('/api/analytics', authenticate, analyticsRoutes);
+app.use('/api/junctions', authenticate, junctionsRoutes);
+app.use('/api/commands', authenticate, commandsRoutes);
+app.use('/api/telemetry', authenticate, telemetryRoutes);
 
 // 404 + Global error handler
 app.use(notFoundHandler);
