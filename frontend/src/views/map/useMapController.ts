@@ -39,6 +39,14 @@ const ROADS: Array<[number, number][]> = [
   [[900, 1160], [640, 1160], [640, 950]],
   [[900, 1160], [900, 1440]],
   [[1300, 360], [1300, 90]],
+  // Penta (J45) at (240, 1000) — 5 short stub roads fanning out at the
+  // junction's 5 leg angles (legs are [90, 162, 234, 306, 18]°, screen-y
+  // down). 220 px each.
+  [[240, 1000], [240, 1220]],     // S  (90°, straight down)
+  [[240, 1000], [31, 1068]],      // SW (162°)
+  [[240, 1000], [111, 822]],      // NW (234°)
+  [[240, 1000], [240, 780]],      // N  (306°, straight up)
+  [[240, 1000], [449, 1068]],     // NE (18°)
 ];
 const THIN: Array<[number, number][]> = [
   [[80, 700], [560, 700]],

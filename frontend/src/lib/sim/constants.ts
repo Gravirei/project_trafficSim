@@ -221,7 +221,7 @@ export const JUNCS: Record<string, JunctionDef> = {
       { name: 'SW · NE LEFT', short: 'SW·NE·L', dur: 'left', moves: [[1, 'L'], [4, 'L']] },
       { name: 'NW APPROACH', short: 'NW', dur: 'left', moves: [[2, 'L'], [2, 'T'], [2, 'R']] },
     ],
-    mapPos: { x: 560, y: 820 },
+    mapPos: { x: 240, y: 1000 },
   },
 };
 

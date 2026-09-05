@@ -232,12 +232,19 @@ export function buildStaticLayer(S: SimState, dpr: number = dprDefault): HTMLCan
 
   // Buildings
   const brng = mulberry(3700 + (((S.J.mapPos.x * 7 + S.J.mapPos.y) | 0)));
-  for (let t2 = 0; t2 < 170; t2++) {
+  // 5-leg junctions (72° wedges) reject most candidates; triple the sample
+  // size so the surviving buildings are distributed around all 5 legs.
+  const bldCap = S.J.legs.length > 4 ? 480 : 170;
+  for (let t2 = 0; t2 < bldCap; t2++) {
     const bw = 55 + brng() * 110;
     const bh = 55 + brng() * 110;
     const bx = 14 + brng() * (SZ - 28 - bw);
     const by = 14 + brng() * (SZ - 28 - bh);
     let ok = true;
+    // 5-leg junctions (72° spacing) reject most candidates via the per-leg
+    // corridor check. Shrink the corridor half-width for n>4 so buildings
+    // fit in the narrower wedges; the road itself is still rejected.
+    const halfW = ((S.J.hw as number) + 18) * (S.J.legs.length > 4 ? 0.6 : 1);
     for (const a of S.J.legs) {
       const ca = Math.cos(a * (Math.PI / 180));
       const sa = Math.sin(a * (Math.PI / 180));
@@ -255,7 +262,7 @@ export function buildStaticLayer(S: SimState, dpr: number = dprDefault): HTMLCan
         mx = Math.max(mx, lat);
         rmn = Math.min(rmn, Math.hypot(px - 450, py - 450));
       }
-      if (mn < (S.J.hw as number) + 18 && mx > -((S.J.hw as number) + 18)) {
+      if (mn < halfW && mx > -halfW) {
         ok = false;
         break;
       }
