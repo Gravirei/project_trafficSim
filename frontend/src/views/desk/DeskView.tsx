@@ -20,6 +20,9 @@ import {
   step,
   makeVeh,
 } from '@/lib/sim';
+import { createSimSync, type SimSync } from '@/lib/sim/sync';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import type { SimState } from '@/lib/sim/types';
 import { ControlPanel } from './ControlPanel';
 import { Stage } from './Stage';
@@ -81,9 +84,11 @@ function getOrCreateSim(id: string): SimState {
 
 export function DeskView(props: { id: string }) {
   return (
-    <DeskErrorBoundary onError={() => {}}>
-      <DeskViewInner {...props} />
-    </DeskErrorBoundary>
+    <RequireAuth>
+      <DeskErrorBoundary onError={() => {}}>
+        <DeskViewInner {...props} />
+      </DeskErrorBoundary>
+    </RequireAuth>
   );
 }
 
@@ -92,6 +97,8 @@ function DeskViewInner({ id }: { id: string }) {
   const router = useRouter();
   const { showMap, showLanding } = useViewController();
   const { theme } = useTheme();
+  const { api, socket } = useAuth();
+  const syncRef = useRef<SimSync | null>(null);
 
   // Sync sim day/night to the global theme: dark = night, light = day.
   // Rebuild the static layer + log the transition when it changes.
@@ -119,6 +126,8 @@ function DeskViewInner({ id }: { id: string }) {
   try {
     if (!SRef.current || SRef.current.J.id !== id) {
       SRef.current = getOrCreateSim(id);
+      syncRef.current?.destroy();
+      syncRef.current = createSimSync(SRef.current, { api, socket });
     }
     if (typeof document !== 'undefined' && !staticCvRef.current) {
       staticCvRef.current = buildStaticLayer(SRef.current);
@@ -128,6 +137,14 @@ function DeskViewInner({ id }: { id: string }) {
     console.error('[DeskView] init error', err);
   }
   const S = SRef.current;
+
+  // Tear down the sync on unmount.
+  useEffect(() => {
+    return () => {
+      syncRef.current?.destroy();
+      syncRef.current = null;
+    };
+  }, []);
 
   // Build phase segments, queue rows, demand sliders
   useEffect(() => {
@@ -150,6 +167,7 @@ function DeskViewInner({ id }: { id: string }) {
           S.ctl.resting = false;
           S.logs.unshift({ t: fmtClock(7 * 3600 + S.simT), tag: 'sys', msg: 'OPERATOR OVERRIDE — FORCE PHASE ' + (i + 1) });
           if (S.logs.length > 70) S.logs.pop();
+          void syncRef.current?.notifyCommand('force-phase', { phase: i });
         };
         strip.appendChild(d);
       });
@@ -255,6 +273,7 @@ function DeskViewInner({ id }: { id: string }) {
         b.addEventListener('click', () => {
           const m = (b as HTMLElement).dataset.m as 'fixed' | 'actuated' | 'manual';
           S.ctl.mode = m;
+          void syncRef.current?.notifyCommand('set-mode', { mode: m });
           seg.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
           b.classList.add('on');
           const chip = document.getElementById('modeChip');
@@ -456,6 +475,7 @@ function DeskViewInner({ id }: { id: string }) {
       msg: 'SIMULATION RESET — CLOCK 07:00:00',
     });
     showToast('SIMULATION RESET');
+    void syncRef.current?.notifyCommand('reset');
   }
   function preemptForLeg(k: number) {
     if (!S) return;
@@ -480,6 +500,7 @@ function DeskViewInner({ id }: { id: string }) {
       msg: 'PREEMPTION — EMERGENCY VEHICLE ON ' + S.J.legFull[k],
     });
     showToast('PREEMPT · ' + S.J.legNames[k] + ' APPROACH');
+    void syncRef.current?.notifyCommand('preempt', { leg: k });
   }
   function selectVeh(v: any) {
     if (!S) return;
