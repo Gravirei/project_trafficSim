@@ -3,12 +3,12 @@
 import { FormEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLucideRefresh } from '@/hooks/useLucide';
-
-const MOCK_CREDENTIALS = { email: 'admin@gravirei.com', password: 'Admin@123!' };
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export function HeroLoginForm() {
   useLucideRefresh();
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,18 +23,20 @@ export function HeroLoginForm() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    if (email === MOCK_CREDENTIALS.email && password === MOCK_CREDENTIALS.password) {
+    try {
+      await login(email, password);
       router.push('/desk/cross');
       return;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Invalid credentials.';
+      setError(msg);
+      if (cardRef.current) {
+        cardRef.current.classList.remove('shake');
+        void cardRef.current.offsetWidth;
+        cardRef.current.classList.add('shake');
+      }
     }
     setLoading(false);
-    setError('Invalid credentials. Try admin@gravirei.com / Admin@123!');
-    if (cardRef.current) {
-      cardRef.current.classList.remove('shake');
-      void cardRef.current.offsetWidth;
-      cardRef.current.classList.add('shake');
-    }
   };
 
   return (
@@ -43,8 +45,8 @@ export function HeroLoginForm() {
         <div className="hero-login-eyebrow">ADMIN ACCESS</div>
         <h2>Operator sign-in</h2>
         <p>
-          Authenticate to enter the control desk. Mock auth — use{' '}
-          <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
+          Authenticate to enter the control desk. Real auth is wired to the
+          backend; use <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
         </p>
       </div>
 

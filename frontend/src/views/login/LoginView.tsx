@@ -6,15 +6,15 @@ import { useViewController } from '@/hooks/useViewController';
 import { useTheme } from '@/hooks/useTheme';
 import { useLucideRefresh } from '@/hooks/useLucide';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { useAuth } from '@/components/auth/AuthProvider';
 import './login.css';
-
-const MOCK_CREDENTIALS = { email: 'admin@gravirei.com', password: 'Admin@123!' };
 
 export function LoginView() {
   useLucideRefresh();
   const router = useRouter();
   const { showLanding } = useViewController();
   const { theme } = useTheme();
+  const { login, user, status: authStatus } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,20 +30,21 @@ export function LoginView() {
       return;
     }
     setLoading(true);
-    // Frontend-only mock. Real backend wiring happens in the auth phase.
-    await new Promise((r) => setTimeout(r, 600));
-    if (email === MOCK_CREDENTIALS.email && password === MOCK_CREDENTIALS.password) {
-      router.push('/desk/cross');
+    try {
+      await login(email, password);
+      const next = new URLSearchParams(window.location.search).get('next') ?? '/desk/cross';
+      router.push(next);
       return;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Invalid credentials.';
+      setError(msg);
+      if (cardRef.current) {
+        cardRef.current.classList.remove('shake');
+        void cardRef.current.offsetWidth; // force reflow
+        cardRef.current.classList.add('shake');
+      }
     }
     setLoading(false);
-    setError('Invalid credentials. Try admin@gravirei.com / Admin@123!');
-    // Shake the card to indicate failure
-    if (cardRef.current) {
-      cardRef.current.classList.remove('shake');
-      void cardRef.current.offsetWidth; // force reflow
-      cardRef.current.classList.add('shake');
-    }
   };
 
   return (
@@ -71,8 +72,8 @@ export function LoginView() {
             <div className="auth-eyebrow">GREENWAVE · ADMIN ACCESS</div>
             <h1>Operator sign-in</h1>
             <p className="auth-sub">
-              Authenticate to enter the control desk. This is a frontend mock —
-              use <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
+              Authenticate to enter the control desk. Real auth is wired to the
+              backend; use <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
             </p>
           </div>
 
@@ -116,7 +117,7 @@ export function LoginView() {
             </button>
 
             <div className="auth-footnote">
-              BYPASS — for now this screen is a layout demo. Real auth wires in a later phase.
+              SESSION — {authStatus === 'authenticated' && user ? `${user.username} · ${user.role}` : 'NOT AUTHENTICATED'}.
             </div>
           </form>
         </div>
@@ -130,11 +131,11 @@ export function LoginView() {
             </div>
             <div className="aside-row">
               <span>NETWORK</span>
-              <b>OFFLINE — MOCK</b>
+              <b>{authStatus === 'authenticated' ? 'ONLINE · JWT' : 'OFFLINE'}</b>
             </div>
             <div className="aside-row">
               <span>ROLE</span>
-              <b>VIEWER</b>
+              <b>{user ? user.role : '—'}</b>
             </div>
             <div className="aside-row">
               <span>NODE</span>
