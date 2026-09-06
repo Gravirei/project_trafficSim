@@ -18,7 +18,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { createApi, ApiClient } from '@/lib/api/client';
 import { createSocket, SocketClient, SocketStatus } from '@/lib/api/socket';
 import type { ApiUser } from '@/lib/api/types';
@@ -42,7 +42,7 @@ export interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
+  const pathname = usePathname();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<ApiUser | null>(null);
   const [status, setStatus] = useState<AuthContextValue['status']>('idle');
@@ -78,6 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Hydrate from localStorage and validate.
   useEffect(() => {
+    // Skip validation on the login page — no token exists yet.
+    if (pathname === '/login') {
+      setStatus('unauthenticated');
+      return;
+    }
     const stored = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
     if (!stored) {
       setStatus('unauthenticated');
@@ -100,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setStatus('unauthenticated');
       });
-  }, [api, socket]);
+  }, [api, socket, pathname]);
 
   const login = useCallback(
     async (email: string, password: string) => {

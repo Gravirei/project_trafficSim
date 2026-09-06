@@ -129,7 +129,7 @@ VALUES (
 -- ============================================================
 -- Default phase_durations for each junction
 -- ============================================================
-INSERT INTO phase_durations (junction_id, thru, left, yellow, allred, truck_share)
+INSERT INTO phase_durations (junction_id, thru, left_phase, yellow, allred, truck_share)
 VALUES
     ('cross', 14, 7, 3, 2, 0.10),
     ('round', 14, 7, 3, 2, 0.10),

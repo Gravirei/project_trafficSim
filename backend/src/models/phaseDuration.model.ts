@@ -12,10 +12,19 @@ export interface PhaseDurations {
 
 export type DurationKey = 'thru' | 'left' | 'yellow' | 'allred' | 'truck_share';
 
+/** Maps the JS-friendly key to the actual SQL column name. */
+const COL: Record<DurationKey, string> = {
+  thru: 'thru',
+  left: 'left_phase', // `left` is a reserved word in PostgreSQL
+  yellow: 'yellow',
+  allred: 'allred',
+  truck_share: 'truck_share',
+};
+
 export const PhaseDurationModel = {
   async getByJunctionId(junctionId: string): Promise<PhaseDurations | null> {
     const result = await pool.query<PhaseDurations>(
-      'SELECT * FROM phase_durations WHERE junction_id = $1',
+      'SELECT junction_id, thru, left_phase AS "left", yellow, allred, truck_share, updated_at FROM phase_durations WHERE junction_id = $1',
       [junctionId],
     );
     return result.rows[0] || null;
@@ -23,7 +32,7 @@ export const PhaseDurationModel = {
 
   async getAll(): Promise<PhaseDurations[]> {
     const result = await pool.query<PhaseDurations>(
-      'SELECT * FROM phase_durations ORDER BY junction_id',
+      'SELECT junction_id, thru, left_phase AS "left", yellow, allred, truck_share, updated_at FROM phase_durations ORDER BY junction_id',
     );
     return result.rows;
   },
@@ -41,7 +50,7 @@ export const PhaseDurationModel = {
     let i = 1;
     for (const key of ['thru', 'left', 'yellow', 'allred', 'truck_share'] as const) {
       if (patch[key] !== undefined) {
-        fields.push(`${key} = $${i++}`);
+        fields.push(`${COL[key]} = $${i++}`);
         values.push(patch[key] as number);
       }
     }
@@ -51,7 +60,7 @@ export const PhaseDurationModel = {
     const result = await pool.query<PhaseDurations>(
       `UPDATE phase_durations SET ${fields.join(', ')}
         WHERE junction_id = $${i}
-        RETURNING *`,
+        RETURNING junction_id, thru, left_phase AS "left", yellow, allred, truck_share, updated_at`,
       values,
     );
     return result.rows[0] || null;

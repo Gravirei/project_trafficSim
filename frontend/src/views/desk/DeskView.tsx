@@ -93,7 +93,9 @@ export function DeskView(props: { id: string }) {
 }
 
 function DeskViewInner({ id }: { id: string }) {
-  useLucideRefresh();
+  // NOTE: useLucideRefresh() intentionally omitted here — calling createIcons()
+  // inside React's commit phase causes a Node.removeChild reconciliation error
+  // on this view due to its complex DOM structure.
   const router = useRouter();
   const { showMap, showLanding } = useViewController();
   const { theme } = useTheme();
@@ -249,8 +251,6 @@ function DeskViewInner({ id }: { id: string }) {
   }, [S]);
 
   // Bind buttons & keyboard & boot
-  // eslint-disable-next-line no-console
-  console.log('[DeskView] useEffect[bind] run, speed:', S?.G?.speed);
   useEffect(() => {
     if (!S) return;
     const bind = (id: string, fn: () => void) => {

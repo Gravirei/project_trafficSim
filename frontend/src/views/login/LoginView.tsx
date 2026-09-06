@@ -4,17 +4,17 @@ import { useState, FormEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
 import { useTheme } from '@/hooks/useTheme';
-import { useLucideRefresh } from '@/hooks/useLucide';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useAuth } from '@/components/auth/AuthProvider';
 import './login.css';
 
 export function LoginView() {
-  useLucideRefresh();
+  // NOTE: useLucideRefresh() intentionally omitted — calling createIcons()
+  // during React's commit phase causes Node.removeChild errors.
+  const { login, user, status: authStatus } = useAuth();
   const router = useRouter();
   const { showLanding } = useViewController();
   const { theme } = useTheme();
-  const { login, user, status: authStatus } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

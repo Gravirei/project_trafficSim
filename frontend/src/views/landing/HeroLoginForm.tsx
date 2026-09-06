@@ -2,11 +2,10 @@
 
 import { FormEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLucideRefresh } from '@/hooks/useLucide';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function HeroLoginForm() {
-  useLucideRefresh();
+  // NOTE: useLucideRefresh() intentionally omitted — same Node.removeChild issue.
   const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState('');

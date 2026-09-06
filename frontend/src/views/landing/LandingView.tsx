@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useLucideRefresh } from '@/hooks/useLucide';
 import { useViewController } from '@/hooks/useViewController';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AnimatedSignal } from './AnimatedSignal';
@@ -56,7 +55,7 @@ const WHY_ROWS = [
 ];
 
 export function LandingView() {
-  useLucideRefresh();
+  // NOTE: useLucideRefresh() intentionally omitted.
   const { enterJunction, showMap } = useViewController();
   const [heroMode, setHeroMode] = useState<'signal' | 'login'>('signal');
   return (

@@ -3,14 +3,13 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
-import { useLucideRefresh } from '@/hooks/useLucide';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useMapController, MapJunctionState } from './useMapController';
 import { MapJunctionList } from './MapJunctionList';
 import styles from './MapView.module.css';
 
 export function MapView() {
-  useLucideRefresh();
+  // NOTE: useLucideRefresh() intentionally omitted.
   const router = useRouter();
   const { showLanding } = useViewController();
   const cvRef = useRef<HTMLCanvasElement | null>(null);
