@@ -1,13 +1,14 @@
 'use client';
 
 import { RefObject } from 'react';
+import { RadioTower, Layers, BarChart3, Terminal } from 'lucide-react';
 import styles from './DeskView.module.css';
 
 export function TelemetryPanel({ sparkRef }: { sparkRef: RefObject<HTMLCanvasElement | null> }) {
   return (
     <aside className={styles.panel} role="region" aria-label="Telemetry panel">
       <div className={styles.ph}>
-        SIGNAL RING <i data-lucide="radio-tower" />
+        SIGNAL RING <RadioTower size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className={styles.strip} id="strip" role="tablist" aria-label="Phase ring" />
@@ -24,12 +25,12 @@ export function TelemetryPanel({ sparkRef }: { sparkRef: RefObject<HTMLCanvasEle
       </div>
 
       <div className={styles.ph}>
-        QUEUE DEPTH <i data-lucide="layers" />
+        QUEUE DEPTH <Layers size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk} id="queues" />
 
       <div className={styles.ph}>
-        MEASURES <i data-lucide="bar-chart-3" />
+        MEASURES <BarChart3 size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className={styles.statsGrid}>
@@ -70,7 +71,7 @@ export function TelemetryPanel({ sparkRef }: { sparkRef: RefObject<HTMLCanvasEle
       </div>
 
       <div className={styles.ph}>
-        EVENT LOG <i data-lucide="terminal" />
+        EVENT LOG <Terminal size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className={styles.log} id="log" role="log" aria-live="polite" />

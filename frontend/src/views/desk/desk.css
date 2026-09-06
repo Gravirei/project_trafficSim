@@ -114,4 +114,4 @@
 #control .spd button[data-active] { background: var(--amber); color: #131313; font-weight: 600; }
 
 /* ── lucide icon sizing ─────────────────────────────────────────────── */
-#control i[data-lucide], #control svg[data-lucide] { width: 14px; height: 14px; stroke-width: 2; }
+#control svg { width: 14px; height: 14px; stroke-width: 2; }

@@ -83,7 +83,7 @@ button {
   cursor: pointer;
 }
 
-i[data-lucide] {
+svg {
   width: 14px;
   height: 14px;
   stroke-width: 2;

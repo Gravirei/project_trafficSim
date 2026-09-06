@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useViewController } from '@/hooks/useViewController';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -9,8 +10,6 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import './login.css';
 
 export function LoginView() {
-  // NOTE: useLucideRefresh() intentionally omitted — calling createIcons()
-  // during React's commit phase causes Node.removeChild errors.
   const { login, user, status: authStatus } = useAuth();
   const router = useRouter();
   const { showLanding } = useViewController();
@@ -40,7 +39,7 @@ export function LoginView() {
       setError(msg);
       if (cardRef.current) {
         cardRef.current.classList.remove('shake');
-        void cardRef.current.offsetWidth; // force reflow
+        void cardRef.current.offsetWidth;
         cardRef.current.classList.add('shake');
       }
     }
@@ -60,7 +59,7 @@ export function LoginView() {
             onClick={() => showLanding()}
             aria-label="Back to briefing"
           >
-            <i data-lucide="arrow-left" /> BACK TO BRIEFING
+            <ArrowLeft size={14} strokeWidth={2} /> BACK TO BRIEFING
           </button>
           <ThemeToggle />
         </div>
@@ -106,14 +105,14 @@ export function LoginView() {
 
             {error ? (
               <div className="auth-error" role="alert">
-                <i data-lucide="alert-triangle" />
+                <AlertTriangle size={14} strokeWidth={2} />
                 <span>{error}</span>
               </div>
             ) : null}
 
             <button type="submit" className="auth-submit" disabled={loading} aria-busy={loading}>
               {loading ? 'AUTHENTICATING…' : 'ENTER CONTROL CENTER'}
-              {!loading && <i data-lucide="arrow-right" />}
+              {!loading && <ArrowRight size={14} strokeWidth={2} />}
             </button>
 
             <div className="auth-footnote">

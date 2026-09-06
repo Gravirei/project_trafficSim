@@ -27,15 +27,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <RootShell>{children}</RootShell>
-        {/*
-          Lucide UMD bundle — defer so it loads after parsing, not blocking
-          first paint. Icons render once `window.lucide` is available
-          (handled by useLucideRefresh in each view).
-        */}
-        <script
-          src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"
-          defer
-        />
       </body>
     </html>
   );

@@ -3,8 +3,8 @@
 import { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
-import { useLucideRefresh } from '@/hooks/useLucide';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { ArrowLeft, Map as LucideMap, Pause, Play, RotateCcw } from 'lucide-react';
 import {
   JUNCS,
   SZ,
@@ -93,9 +93,6 @@ export function DeskView(props: { id: string }) {
 }
 
 function DeskViewInner({ id }: { id: string }) {
-  // NOTE: useLucideRefresh() intentionally omitted here — calling createIcons()
-  // inside React's commit phase causes a Node.removeChild reconciliation error
-  // on this view due to its complex DOM structure.
   const router = useRouter();
   const { showMap, showLanding } = useViewController();
   const { theme } = useTheme();
@@ -665,10 +662,10 @@ function DeskViewInner({ id }: { id: string }) {
           onClick={() => showLanding()}
           aria-label="Back to briefing (landing page)"
         >
-          <i data-lucide="arrow-left" /> BRIEFING
+          <ArrowLeft size={14} strokeWidth={2} /> BRIEFING
         </button>
         <button className={styles.tbBtn} id="btnMap" onClick={() => showMap()} aria-label="Open network map">
-          <i data-lucide="map" /> MAP
+          <LucideMap size={14} strokeWidth={2} /> MAP
         </button>
         <span className={styles.tbTitle} id="juncTitle">
           CONTROL DESK
@@ -684,11 +681,11 @@ function DeskViewInner({ id }: { id: string }) {
             <button data-s="4" aria-label="Quadruple speed">4×</button>
           </div>
           <button className={styles.tbBtn} id="btnPause" aria-label="Pause or resume simulation">
-            <i data-lucide="pause" id="icPause" />
-            <i data-lucide="play" id="icPlay" className="hide" />
+            <Pause size={14} strokeWidth={2} id="icPause" />
+            <Play size={14} strokeWidth={2} id="icPlay" className="hide" />
           </button>
           <button className={styles.tbBtn} id="btnReset" aria-label="Reset simulation">
-            <i data-lucide="rotate-ccw" /> RESET
+            <RotateCcw size={14} strokeWidth={2} /> RESET
           </button>
           <ThemeToggle />
           <span className={styles.clock} id="clock" role="timer" aria-label="Simulation clock">

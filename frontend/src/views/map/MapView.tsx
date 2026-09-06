@@ -3,13 +3,13 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
+import { ArrowLeft, Minus, Plus, Maximize, MapPin } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useMapController, MapJunctionState } from './useMapController';
 import { MapJunctionList } from './MapJunctionList';
 import styles from './MapView.module.css';
 
 export function MapView() {
-  // NOTE: useLucideRefresh() intentionally omitted.
   const router = useRouter();
   const { showLanding } = useViewController();
   const cvRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,7 +29,7 @@ export function MapView() {
           onClick={() => showLanding()}
           aria-label="Back to briefing (landing page)"
         >
-          <i data-lucide="arrow-left" /> BRIEFING
+          <ArrowLeft size={14} strokeWidth={2} /> BRIEFING
         </button>
         <span className={styles.tbTitle}>
           GREENWAVE · <b>NETWORK MAP</b> · SIGNALIZED SITES
@@ -39,13 +39,13 @@ export function MapView() {
         </span>
         <div className={styles.tbRight}>
           <button className={styles.tbBtn} onClick={ctl.zoomOut} aria-label="Zoom out">
-            <i data-lucide="minus" />
+            <Minus size={14} strokeWidth={2} />
           </button>
           <button className={styles.tbBtn} onClick={ctl.zoomIn} aria-label="Zoom in">
-            <i data-lucide="plus" />
+            <Plus size={14} strokeWidth={2} />
           </button>
           <button className={styles.tbBtn} onClick={ctl.fit} aria-label="Fit network to viewport">
-            <i data-lucide="maximize" /> FIT
+            <Maximize size={14} strokeWidth={2} /> FIT
           </button>
           <ThemeToggle />
           <span className={styles.clock} id="mapClock" role="timer" aria-label="Network clock">
@@ -56,7 +56,7 @@ export function MapView() {
       <div className={styles.mapbody}>
         <aside className={styles.mapside} role="region" aria-label="Junction list">
           <div className={styles.ph}>
-            JUNCTIONS <i data-lucide="map-pin" />
+            JUNCTIONS <MapPin size={14} strokeWidth={2} />
           </div>
           <MapJunctionList states={states} onOpen={(id) => router.push('/desk/' + id)} />
           <div className={styles.blk}>

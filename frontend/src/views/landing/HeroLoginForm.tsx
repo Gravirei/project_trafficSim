@@ -2,10 +2,10 @@
 
 import { FormEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function HeroLoginForm() {
-  // NOTE: useLucideRefresh() intentionally omitted — same Node.removeChild issue.
   const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -74,14 +74,14 @@ export function HeroLoginForm() {
 
       {error ? (
         <div className="hero-login-error" role="alert">
-          <i data-lucide="alert-triangle" />
+          <AlertTriangle size={14} strokeWidth={2} />
           <span>{error}</span>
         </div>
       ) : null}
 
       <button type="submit" className="hero-login-submit" disabled={loading} aria-busy={loading}>
         {loading ? 'AUTHENTICATING…' : 'ENTER CONTROL CENTER'}
-        {!loading && <i data-lucide="arrow-right" />}
+        {!loading && <ArrowRight size={14} strokeWidth={2} />}
       </button>
     </form>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import styles from './ThemeToggle.module.css';
 
@@ -20,9 +21,9 @@ export function ThemeToggle() {
       title={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
     >
       {isLight ? (
-        <i data-lucide="moon" />
+        <Moon size={14} strokeWidth={2} />
       ) : (
-        <i data-lucide="sun" />
+        <Sun size={14} strokeWidth={2} />
       )}
     </button>
   );

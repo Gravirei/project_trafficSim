@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowLeft, ArrowRight, Lock, Map } from 'lucide-react';
 import { useViewController } from '@/hooks/useViewController';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AnimatedSignal } from './AnimatedSignal';
@@ -55,7 +56,6 @@ const WHY_ROWS = [
 ];
 
 export function LandingView() {
-  // NOTE: useLucideRefresh() intentionally omitted.
   const { enterJunction, showMap } = useViewController();
   const [heroMode, setHeroMode] = useState<'signal' | 'login'>('signal');
   return (
@@ -76,7 +76,7 @@ export function LandingView() {
             aria-label={heroMode === 'login' ? 'Back to traffic signal' : 'Open admin login form'}
             title={heroMode === 'login' ? 'Back to traffic signal' : 'Admin login'}
           >
-            <i data-lucide={heroMode === 'login' ? 'arrow-left' : 'lock'} />
+            {heroMode === 'login' ? <ArrowLeft size={14} strokeWidth={2} /> : <Lock size={14} strokeWidth={2} />}
             {heroMode === 'login' ? 'BACK' : 'LOGIN'}
           </button>
           <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
@@ -98,10 +98,10 @@ export function LandingView() {
           </p>
           <div className="ctaRow">
             <button className="btnPrimary" onClick={() => enterJunction('cross')} aria-label="Enter the control center for Central Cross">
-              ENTER THE CONTROL CENTER <i data-lucide="arrow-right" />
+              ENTER THE CONTROL CENTER <ArrowRight size={14} strokeWidth={2} />
             </button>
             <button className="btnGhost" onClick={() => showMap()} aria-label="Open network map">
-              OPEN NETWORK MAP <i data-lucide="map" />
+              OPEN NETWORK MAP <Map size={14} strokeWidth={2} />
             </button>
           </div>
           <div className="spec">4 JUNCTION SHAPES · LIVE NETWORK MAP · ACTUATED CONTROL · PEDESTRIAN CALLS · EMERGENCY PREEMPTION</div>
@@ -197,10 +197,10 @@ export function LandingView() {
         <p>Open the network map, pick a junction — cross, roundabout, Y or T — and run it live: random demand, actuated phasing, pedestrian calls, preemption and full telemetry, all in your browser.</p>
         <div className="ctaRow">
           <button className="btnPrimary" onClick={() => enterJunction('cross')} aria-label="Enter the control center for Central Cross">
-            ENTER THE CONTROL CENTER <i data-lucide="arrow-right" />
+            ENTER THE CONTROL CENTER <ArrowRight size={14} strokeWidth={2} />
           </button>
           <button className="btnGhost" onClick={() => showMap()} aria-label="Open network map">
-            OPEN NETWORK MAP <i data-lucide="map" />
+            OPEN NETWORK MAP <Map size={14} strokeWidth={2} />
           </button>
         </div>
       </section>

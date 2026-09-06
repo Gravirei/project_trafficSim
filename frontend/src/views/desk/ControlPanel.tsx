@@ -1,12 +1,13 @@
 'use client';
 
+import { SlidersHorizontal, ChevronsRight, Timer, Activity, Siren, Footprints } from 'lucide-react';
 import styles from './DeskView.module.css';
 
 export function ControlPanel() {
   return (
     <aside className={styles.panel} role="region" aria-label="Control panel">
       <div className={styles.ph}>
-        CONTROL MODE <i data-lucide="sliders-horizontal" />
+        CONTROL MODE <SlidersHorizontal size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className={styles.seg3} id="segMode" role="radiogroup" aria-label="Control mode">
@@ -21,7 +22,7 @@ export function ControlPanel() {
           </button>
         </div>
         <button className={styles.btnPri} id="btnAdvance" aria-label="Advance to next phase">
-          <i data-lucide="chevrons-right" /> ADVANCE PHASE
+          <ChevronsRight size={14} strokeWidth={2} /> ADVANCE PHASE
         </button>
         <div className={styles.hint} id="modeHint">
           Actuated: detectors extend green while demand keeps arriving; the phase gap-outs or max-outs on its own.
@@ -29,7 +30,7 @@ export function ControlPanel() {
       </div>
 
       <div className={styles.ph}>
-        TIMING PLAN <i data-lucide="timer" />
+        TIMING PLAN <Timer size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className={styles.sl}>
@@ -71,12 +72,12 @@ export function ControlPanel() {
       </div>
 
       <div className={styles.ph}>
-        DEMAND · VEH/MIN <i data-lucide="activity" />
+        DEMAND · VEH/MIN <Activity size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk} id="demandBlk" />
 
       <div className={styles.ph}>
-        INCIDENTS <i data-lucide="siren" />
+        INCIDENTS <Siren size={14} strokeWidth={2} />
       </div>
       <div className={styles.blk}>
         <div className="pev-grid" id="pevGrid" role="group" aria-label="Preempt approach" />
@@ -90,7 +91,7 @@ export function ControlPanel() {
           <input type="range" id="s-trk" min={0} max={40} defaultValue={12} />
         </div>
         <button className={styles.btn} id="btnPed" aria-label="Register pedestrian call">
-          <i data-lucide="footprints" /> PEDESTRIAN CALL
+          <Footprints size={14} strokeWidth={2} /> PEDESTRIAN CALL
         </button>
         <div className={styles.hint}>
           Preemption truncates the current phase and launches an emergency vehicle down the chosen approach. Click any
