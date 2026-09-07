@@ -105,6 +105,9 @@ svg {
 #control {
   display: flex;
 }
+#dashboard {
+  display: flex;
+}
 body:not([data-view='landing']) {
   overflow: hidden;
 }

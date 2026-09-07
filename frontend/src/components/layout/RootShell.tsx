@@ -15,6 +15,8 @@ export function RootShell({ children }: { children: ReactNode }) {
       document.body.dataset.view = 'control';
     } else if (pathname.startsWith('/map')) {
       document.body.dataset.view = 'map';
+    } else if (pathname.startsWith('/dashboard')) {
+      document.body.dataset.view = 'dashboard';
     } else {
       document.body.dataset.view = 'landing';
     }

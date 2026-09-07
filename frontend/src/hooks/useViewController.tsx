@@ -10,6 +10,7 @@ interface ViewCtx {
   currentJunc: string | null;
   showLanding: () => void;
   showMap: () => void;
+  showDashboard: () => void;
   enterJunction: (id: string) => void;
 }
 
@@ -45,6 +46,7 @@ export function ViewProvider({ children }: { children: ReactNode }) {
       currentJunc,
       showLanding: vm ? () => vm.showLanding() : noop,
       showMap: vm ? () => vm.showMap() : noop,
+      showDashboard: vm ? () => vm.showDashboard() : noop,
       enterJunction: vm ? (id: string) => vm.enterJunction(id) : noop,
     }),
     [vm, view, currentJunc],
@@ -56,7 +58,15 @@ export function ViewProvider({ children }: { children: ReactNode }) {
 export function useViewController(): ViewCtx {
   const ctx = useContext(Ctx);
   if (!ctx) {
-    return { vm: null, view: 'landing', currentJunc: null, showLanding: noop, showMap: noop, enterJunction: noop };
+    return {
+      vm: null,
+      view: 'landing',
+      currentJunc: null,
+      showLanding: noop,
+      showMap: noop,
+      showDashboard: noop,
+      enterJunction: noop,
+    };
   }
   return ctx;
 }

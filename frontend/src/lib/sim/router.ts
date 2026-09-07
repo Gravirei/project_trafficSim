@@ -10,7 +10,7 @@
 
 import { JUNCTION_IDS } from './constants';
 
-export type View = 'landing' | 'map' | 'control';
+export type View = 'landing' | 'map' | 'control' | 'dashboard';
 
 export interface ViewManager {
   getView(): View;
@@ -18,6 +18,7 @@ export interface ViewManager {
   setView(v: View): void;
   showLanding(): void;
   showMap(): void;
+  showDashboard(): void;
   enterJunction(id: string): void;
   /** Wire up the Next.js router so view changes actually change the route. */
   setNavigator(nav: { push: (path: string) => void }): void;
@@ -72,6 +73,11 @@ export function createViewManager(): ViewManager {
         emitJunction(id);
         nav?.push('/desk/' + id);
       }
+    } else if (h === '#dashboard') {
+      if (view !== 'dashboard') {
+        emitView('dashboard');
+        nav?.push('/dashboard');
+      }
     } else if (h === '#map') {
       if (view !== 'map') {
         emitView('map');
@@ -96,6 +102,10 @@ export function createViewManager(): ViewManager {
         replaceHash('#map');
         nav?.push('/map');
       }
+      if (v === 'dashboard') {
+        replaceHash('#dashboard');
+        nav?.push('/dashboard');
+      }
     },
     showLanding: () => {
       emitView('landing');
@@ -106,6 +116,11 @@ export function createViewManager(): ViewManager {
       emitView('map');
       replaceHash('#map');
       nav?.push('/map');
+    },
+    showDashboard: () => {
+      emitView('dashboard');
+      replaceHash('#dashboard');
+      nav?.push('/dashboard');
     },
     enterJunction: (id) => {
       if (!JUNCTION_IDS.includes(id)) return;

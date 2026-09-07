@@ -3,8 +3,26 @@
 import { ReactNode } from 'react';
 import styles from './Panel.module.css';
 
-export function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <aside className={[styles.panel, className].filter(Boolean).join(' ')}>{children}</aside>;
+export function Panel({
+  children,
+  className,
+  onClick,
+  title,
+}: {
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  title?: string;
+}) {
+  return (
+    <aside
+      className={[styles.panel, className].filter(Boolean).join(' ')}
+      onClick={onClick}
+      title={title}
+    >
+      {children}
+    </aside>
+  );
 }
 
 export function PanelHeader({ children, right }: { children: ReactNode; right?: ReactNode }) {

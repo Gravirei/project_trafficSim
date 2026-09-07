@@ -31,7 +31,7 @@ export function LoginView() {
     setLoading(true);
     try {
       await login(email, password);
-      const next = new URLSearchParams(window.location.search).get('next') ?? '/desk/cross';
+      const next = new URLSearchParams(window.location.search).get('next') ?? '/dashboard';
       router.push(next);
       return;
     } catch (err) {

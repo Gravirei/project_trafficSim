@@ -16,7 +16,11 @@ export interface UseMapControllerOptions {
   /** Called when the user clicks a junction marker. */
   onJunctionClick: (id: string) => void;
   /** Receives the latest junction state map for sidebar colour-sync. */
-  onStateChange: (states: Record<string, MapJunctionState>) => void;
+  onStateChange?: (states: Record<string, MapJunctionState>) => void;
+  /** Automatically fit zoom and camera to the container size. */
+  autoFit?: boolean;
+  /** Optional filter query to highlight matching junctions and dim others. */
+  searchQuery?: string;
 }
 
 export interface MapController {
@@ -72,10 +76,14 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const sizeRef = useRef({ W: 0, H: 0 });
   const netClockRef = useRef(0);
-  const stRef = useRef<Record<string, MapJunctionState>>({});
-  JUNCTION_IDS.forEach((id) => {
-    if (!stRef.current[id]) stRef.current[id] = { phase: 0, interval: 'G', t: 0 };
-  });
+  const queryRef = useRef(opts.searchQuery);
+  useEffect(() => {
+    queryRef.current = opts.searchQuery;
+  }, [opts.searchQuery]);
+
+  const stRef = useRef<Record<string, MapJunctionState>>(
+    Object.fromEntries(JUNCTION_IDS.map((id) => [id, { phase: 0, interval: 'G', t: 0 }])),
+  );
 
   const w2s = (x: number, y: number) => [
     (x - camRef.current.x) * zoomRef.current + sizeRef.current.W / 2,
@@ -91,12 +99,20 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
     if (!cv) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;
-    if (!sizeRef.current.W) {
-      const r = cv.getBoundingClientRect();
-      sizeRef.current = { W: r.width, H: r.height };
-      cv.width = Math.max(1, r.width * window.devicePixelRatio);
-      cv.height = Math.max(1, r.height * window.devicePixelRatio);
-      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    const r = cv.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      const targetW = Math.max(1, Math.round(r.width * window.devicePixelRatio));
+      const targetH = Math.max(1, Math.round(r.height * window.devicePixelRatio));
+      if (cv.width !== targetW || cv.height !== targetH || !sizeRef.current.W) {
+        cv.width = targetW;
+        cv.height = targetH;
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        sizeRef.current = { W: r.width, H: r.height };
+        if (opts.autoFit) {
+          zoomRef.current = Math.min(r.width / 1900, r.height / 1500) * 0.95;
+          camRef.current = { x: 930, y: 750 };
+        }
+      }
     }
     const { W, H } = sizeRef.current;
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -146,19 +162,23 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
     for (const r of ROADS) drawPoly(r, Math.max(1, 1.4), '#3d434d');
     ctx.setLineDash([]);
     ctx.textBaseline = 'middle';
+    const q = (queryRef.current ?? '').trim().toLowerCase();
     for (const id of JUNCTION_IDS) {
       const J = JUNCS[id];
       const s = stRef.current[id];
       const [mx, my] = w2s(J.mapPos.x, J.mapPos.y);
       const col = ivColor(s.interval);
       const pulse = 3 + 2.5 * Math.sin(now * 0.004 + J.mapPos.x * 0.01);
+      const isMatch = !q || (J.code + ' ' + J.name + ' ' + J.shape).toLowerCase().includes(q);
+      const alpha = isMatch ? 1 : 0.22;
+
       ctx.strokeStyle = col;
       ctx.lineWidth = 2.2;
-      ctx.globalAlpha = 0.9;
+      ctx.globalAlpha = 0.9 * alpha;
       ctx.beginPath();
       ctx.arc(mx, my, (hoverRef.current === id ? 26 : 22) + pulse, 0, 7);
       ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = alpha;
       ctx.fillStyle = '#f0a63c';
       ctx.beginPath();
       ctx.arc(mx, my, hoverRef.current === id ? 9 : 7, 0, 7);
@@ -183,6 +203,7 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
       ctx.font = '400 8px "IBM Plex Mono",monospace';
       ctx.fillStyle = '#8b8a84';
       ctx.fillText(J.shape, lx - 7, ly + 16);
+      ctx.globalAlpha = 1;
     }
     const clockEl = document.getElementById('mapClock');
     if (clockEl) clockEl.textContent = fmtClock(7 * 3600 + netClockRef.current);
@@ -214,7 +235,7 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
         }
       }
       netClockRef.current += dt;
-      opts.onStateChange({ ...stRef.current });
+      opts.onStateChange?.({ ...stRef.current });
       draw(now);
       raf = requestAnimationFrame(loop);
     };
@@ -306,14 +327,32 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
     if (!cv) return;
     const handler = () => {
       const r = cv.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) return;
+      const targetW = Math.max(1, Math.round(r.width * window.devicePixelRatio));
+      const targetH = Math.max(1, Math.round(r.height * window.devicePixelRatio));
+      const sizeChanged = cv.width !== targetW || cv.height !== targetH;
+      if (sizeChanged) {
+        cv.width = targetW;
+        cv.height = targetH;
+        const ctx = cv.getContext('2d');
+        ctx?.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      }
       sizeRef.current = { W: r.width, H: r.height };
-      cv.width = Math.max(1, r.width * window.devicePixelRatio);
-      cv.height = Math.max(1, r.height * window.devicePixelRatio);
-      const ctx = cv.getContext('2d');
-      ctx?.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      if (opts.autoFit) {
+        zoomRef.current = Math.min(r.width / 1900, r.height / 1500) * 0.95;
+        camRef.current = { x: 930, y: 750 };
+      }
+      if (sizeChanged) {
+        draw(performance.now());
+      }
     };
     window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(handler) : null;
+    ro?.observe(cv);
+    return () => {
+      window.removeEventListener('resize', handler);
+      ro?.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -322,11 +361,16 @@ export function useMapController(opts: UseMapControllerOptions): MapController {
       zoomRef.current = Math.min(3.2, zoomRef.current * 1.3);
     },
     zoomOut: () => {
-      zoomRef.current = Math.max(0.4, zoomRef.current / 1.3);
+      zoomRef.current = Math.max(0.15, zoomRef.current / 1.3);
     },
     fit: () => {
-      zoomRef.current = 0.85;
-      camRef.current = { x: 900, y: 750 };
+      if (opts.autoFit && sizeRef.current.W > 0 && sizeRef.current.H > 0) {
+        zoomRef.current = Math.min(sizeRef.current.W / 1900, sizeRef.current.H / 1500) * 0.95;
+        camRef.current = { x: 930, y: 750 };
+      } else {
+        zoomRef.current = 0.85;
+        camRef.current = { x: 900, y: 750 };
+      }
     },
     destroy: () => {},
   };

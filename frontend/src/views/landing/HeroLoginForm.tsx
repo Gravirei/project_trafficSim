@@ -24,7 +24,7 @@ export function HeroLoginForm() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push('/desk/cross');
+      router.push('/dashboard');
       return;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Invalid credentials.';
