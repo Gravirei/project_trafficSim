@@ -49,7 +49,7 @@ export function ViewProvider({ children }: { children: ReactNode }) {
       showDashboard: vm ? () => vm.showDashboard() : noop,
       enterJunction: vm ? (id: string) => vm.enterJunction(id) : noop,
     }),
-    [vm, view, currentJunc],
+    [vm, view, currentJunc]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
