@@ -104,6 +104,10 @@ svg {
 }
 #control {
   display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 #dashboard {
   display: flex;

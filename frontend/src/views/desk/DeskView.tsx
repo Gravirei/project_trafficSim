@@ -12,6 +12,7 @@ import {
   HINTS,
   TAGN,
   buildPaths,
+  formatPhaseServing,
   buildStaticLayer,
   drawFrame,
   drawSparkline,
@@ -411,6 +412,26 @@ function DeskViewInner({ id }: { id: string }) {
     }
   }, [S]);
 
+  // Keep the simulation canvas fitted to the middle stage cell on mount/resize.
+  useEffect(() => {
+    if (!S) return;
+    const cv = cvRef.current;
+    if (!cv) return;
+    const stage = cv.parentElement;
+    const apply = () => fit();
+    apply();
+    const t = window.setTimeout(apply, 80);
+    const ro = new ResizeObserver(apply);
+    if (stage) ro.observe(stage);
+    window.addEventListener('resize', apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', apply);
+      window.clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [S]);
+
   // Main rAF loop — paints canvas, runs sim, updates HUD DOM directly.
   // No setRerender here: the canvas is its own visual surface, and the
   // HUD elements are mutated directly (no React re-render needed).
@@ -545,11 +566,26 @@ function DeskViewInner({ id }: { id: string }) {
     }
   }
   function fit() {
-    if (!S || !cvRef.current) return;
-    const r = cvRef.current.getBoundingClientRect();
-    const s = Math.max(280, Math.min(r.width - 16, r.height - 16));
-    cvRef.current.style.width = s + 'px';
-    cvRef.current.style.height = s + 'px';
+    const cv = cvRef.current;
+    if (!cv) return;
+    // Size from the stage cell, not the canvas itself (self-measure never shrinks).
+    const stage = cv.parentElement;
+    const box = (stage ?? cv.parentElement ?? cv).getBoundingClientRect();
+    const pad = 8;
+    const availW = Math.max(0, box.width - pad * 2);
+    const availH = Math.max(0, box.height - pad * 2);
+    // Prefer stage box; fall back to leftover viewport between side panels.
+    let s = Math.floor(Math.min(availW, availH));
+    if (!Number.isFinite(s) || s < 40) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const side = vw >= 1180 ? 266 + 306 + 40 : 0;
+      const top = 54 + 20;
+      s = Math.floor(Math.min(vw - side, vh - top) - pad * 2);
+    }
+    s = Math.max(200, s);
+    cv.style.width = s + 'px';
+    cv.style.height = s + 'px';
   }
   function showToast(msg: string) {
     const t = document.getElementById('toast');
@@ -603,17 +639,7 @@ function DeskViewInner({ id }: { id: string }) {
       phNext.textContent = s.ctl.preempt
         ? 'HOLD — EV CLEARANCE'
         : 'PHASE ' + (((s.ctl.phase + 1) % s.J.phases.length) + 1) + ' · ' + s.J.phases[(s.ctl.phase + 1) % s.J.phases.length].name;
-    if (phServe)
-      phServe.textContent = ph.moves
-        .map((m) =>
-          m[1] === '*'
-            ? s.J.legNames[m[0]] + '▸ALL'
-            : (() => {
-                const p = s.mvMap[m[0]][m[1]];
-                return s.J.legNames[m[0]] + '▸' + s.J.legNames[p.legB];
-              })(),
-        )
-        .join('  ');
+    if (phServe) phServe.textContent = formatPhaseServing(s.J, ph.moves, s.mvMap, s.paths);
     document.querySelectorAll('#queues .qrow').forEach((el) => {
       const k = +(el as HTMLElement).dataset.k!;
       const qn = s.vehs.filter((v) => v.path.legA === k && v.s < v.path.stopS && v.v < 12).length;

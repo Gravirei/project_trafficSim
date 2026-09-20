@@ -5,6 +5,7 @@
 
 import { compass8, fmtClock } from './helpers';
 import { TAGN } from './constants';
+import { formatPhaseServing } from './geometry';
 import type { SimState, Vehicle } from './types';
 
 export interface HudRefs {
@@ -68,13 +69,7 @@ export function updateHud(S: SimState, refs: HudRefs): void {
     : 'PHASE ' + (((ctl.phase + 1) % S.J.phases.length) + 1) +
       ' · ' +
       S.J.phases[(ctl.phase + 1) % S.J.phases.length].name;
-  refs.phServe.textContent = ph.moves
-    .map((m) => {
-      if (m[1] === '*') return S.J.legNames[m[0]] + '▸ALL';
-      const p = S.mvMap[m[0]][m[1]];
-      return S.J.legNames[m[0]] + '▸' + S.J.legNames[p.legB];
-    })
-    .join('  ');
+  refs.phServe.textContent = formatPhaseServing(S.J, ph.moves, S.mvMap, S.paths);
 
   refs.queueRows.forEach((el) => {
     const k = +el.dataset.k!;

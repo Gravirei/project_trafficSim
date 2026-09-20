@@ -218,7 +218,11 @@ export function buildPaths(J: JunctionDef): {
       } else {
         const cr = A.ux * B.uy - A.uy * B.ux;
         const dot = A.ux * B.ux + A.uy * B.uy;
-        mv = Math.abs(cr) < 0.09 && dot < -0.9 ? 'T' : cr > 0 ? 'L' : 'R';
+        // Leg bearings are outward unit vectors; "through" is roughly opposite.
+        // 4-way cross uses 180°; multi-leg (penta) uses ~144° — treat >=135° as T
+        // so phase tables that say S▸N THROUGH resolve instead of crashing HUD.
+        const ang = Math.acos(clamp(dot, -1, 1)) / RAD;
+        mv = ang >= 135 ? 'T' : cr > 0 ? 'L' : 'R';
       }
       const p: PathPoint =
         J.type === 'round' ? buildRound(J, a, b, mv, L, lIn, lOut) : buildTurn(J, a, b, mv, L, lIn, lOut);
@@ -255,6 +259,41 @@ export function buildPaths(J: JunctionDef): {
     }
   }
   return { paths, mvMap };
+}
+
+/** Resolve a phase move to a path, tolerating missing L/T/R slots. */
+export function resolveMovePath(
+  mvMap: Record<number, Record<string, PathPoint>>,
+  paths: Record<number, Record<number, PathPoint>> | undefined,
+  leg: number,
+  mv: Move,
+): PathPoint | null {
+  const fromLeg = mvMap?.[leg];
+  if (fromLeg && fromLeg[mv]) return fromLeg[mv];
+  if (paths && paths[leg]) {
+    for (const p of Object.values(paths[leg])) {
+      if (p.mv === mv) return p;
+    }
+  }
+  return null;
+}
+
+/** Human-readable "S▸N  W▸E" labels for the current phase. Never throws. */
+export function formatPhaseServing(
+  J: JunctionDef,
+  moves: readonly (readonly [number, Move | '*'])[],
+  mvMap: Record<number, Record<string, PathPoint>>,
+  paths?: Record<number, Record<number, PathPoint>>,
+): string {
+  return moves
+    .map((m) => {
+      const legName = J.legNames[m[0]] ?? `L${m[0]}`;
+      if (m[1] === '*') return `${legName}▸ALL`;
+      const p = resolveMovePath(mvMap, paths, m[0], m[1]);
+      if (!p) return `${legName}▸${m[1]}`;
+      return `${legName}▸${J.legNames[p.legB] ?? p.legB}`;
+    })
+    .join('  ');
 }
 
 /** Binary-search sample a position + heading along a path. HTML lines 776-781. */
