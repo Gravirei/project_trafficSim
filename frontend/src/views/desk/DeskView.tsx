@@ -383,22 +383,30 @@ function DeskViewInner({ id }: { id: string }) {
         selectVeh(best);
       };
     }
-    if (bootElRef.current && bootTxtRef.current && !S.booted) {
+    // Always play the controller boot sequence on mount (including re-entry
+    // from landing/map) so every junction shows the same loading → panel flow.
+    if (bootElRef.current) {
+      bootElRef.current.style.display = '';
+    }
+    if (bootElRef.current && bootTxtRef.current) {
+      const alreadyBooted = S.booted;
       const cancel = startBootOverlay({
         text: bootTxtRef.current,
         onDone: () => {
           S.booted = true;
-          S.logs.unshift({
-            t: fmtClock(7 * 3600 + S.simT),
-            tag: 'sys',
-            msg: S.J.code + ' ONLINE — ' + S.ctl.mode.toUpperCase() + ' MODE',
-          });
-          S.logs.unshift({
-            t: fmtClock(7 * 3600 + S.simT),
-            tag: 'sys',
-            msg: 'RING · ' + S.J.phases.map((p, i) => 'P' + (i + 1) + ' ' + p.short).join(' · '),
-          });
-          showToast(S.J.code + ' ONLINE');
+          if (!alreadyBooted) {
+            S.logs.unshift({
+              t: fmtClock(7 * 3600 + S.simT),
+              tag: 'sys',
+              msg: S.J.code + ' ONLINE — ' + S.ctl.mode.toUpperCase() + ' MODE',
+            });
+            S.logs.unshift({
+              t: fmtClock(7 * 3600 + S.simT),
+              tag: 'sys',
+              msg: 'RING · ' + S.J.phases.map((p, i) => 'P' + (i + 1) + ' ' + p.short).join(' · '),
+            });
+            showToast(S.J.code + ' ONLINE');
+          }
           fit();
           if (bootElRef.current) bootElRef.current.style.display = 'none';
         },
@@ -408,6 +416,7 @@ function DeskViewInner({ id }: { id: string }) {
         cancel();
         S.booted = true;
         if (bootElRef.current) bootElRef.current.style.display = 'none';
+        fit();
       };
     }
   }, [S]);

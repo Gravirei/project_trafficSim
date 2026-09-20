@@ -3,10 +3,12 @@
 /**
  * AuthProvider + BackendProvider combined.
  *
- * - Holds the JWT in localStorage under 'gw_jwt'
- * - Exposes { user, token, login, logout, api, socket, status }
- * - On mount, validates the stored token via /api/auth/me
- * - Reconnects the socket whenever the token changes
+ * Session persistence:
+ * - JWT + cached user live in localStorage (gw_jwt / gw_user)
+ * - On mount/refresh, restore the session immediately, then revalidate
+ *   against /api/auth/me
+ * - Only a definitive 401/403 clears the stored session — network blips
+ *   keep you logged in
  */
 import {
   createContext,
@@ -18,14 +20,13 @@ import {
   useRef,
   useState,
 } from 'react';
-import { usePathname } from 'next/navigation';
-import { createApi, ApiClient } from '@/lib/api/client';
+import { createApi, ApiClient, ApiError } from '@/lib/api/client';
 import { createSocket, SocketClient, SocketStatus } from '@/lib/api/socket';
+import { clearSession, loadSession, saveSession } from '@/lib/auth/session';
 import type { ApiUser } from '@/lib/api/types';
 
-const TOKEN_KEY = 'gw_jwt';
-const USER_KEY = 'gw_user';
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+// Local backend uses :3002 because :3001 is occupied by MiMo Desktop host.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002';
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? API_URL;
 
 export interface AuthContextValue {
@@ -41,15 +42,18 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function isAuthRejection(err: unknown): boolean {
+  if (err instanceof ApiError) return err.status === 401 || err.status === 403;
+  return false;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<ApiUser | null>(null);
   const [status, setStatus] = useState<AuthContextValue['status']>('idle');
   const [socketStatus, setSocketStatus] = useState<SocketStatus>('disconnected');
 
-  // tokenRef lets the api/socket clients read the latest token without
-  // recreating them on every state change.
+  // Ref mirrors token immediately so api/socket never race React state.
   const tokenRef = useRef<string | null>(null);
   useEffect(() => {
     tokenRef.current = token;
@@ -65,9 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  // Poll the socket status (the SocketClient interface does not yet
-  // expose a status subscription; the polling interval is the workaround
-  // until Phase 6 wires the real status stream).
   useEffect(() => {
     const interval = setInterval(() => {
       const next = socket.status();
@@ -76,42 +77,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [socket]);
 
-  // Hydrate from localStorage and validate.
+  // Restore persisted session on mount/refresh, then revalidate.
   useEffect(() => {
-    // Skip validation on the login page — no token exists yet.
-    if (pathname === '/login') {
+    const session = loadSession();
+    const storedToken = session.token;
+
+    if (!storedToken) {
+      tokenRef.current = null;
+      setToken(null);
+      setUser(null);
       setStatus('unauthenticated');
       return;
     }
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-    if (!stored) {
-      setStatus('unauthenticated');
-      return;
-    }
-    setToken(stored);
-    setStatus('loading');
+
+    // Restore immediately so a refresh does not bounce to /login.
+    tokenRef.current = storedToken;
+    setToken(storedToken);
+    setUser(session.user);
+    setStatus(session.user ? 'authenticated' : 'loading');
+    if (session.user) socket.connect();
+
+    let cancelled = false;
     api
       .me()
-      .then(({ user }) => {
-        setUser(user);
+      .then(({ user: fresh }) => {
+        if (cancelled) return;
+        tokenRef.current = storedToken;
+        setToken(storedToken);
+        setUser(fresh);
         setStatus('authenticated');
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        saveSession(storedToken, fresh);
         socket.connect();
       })
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+      .catch((err) => {
+        if (cancelled) return;
+        // Keep the session on network/server errors; drop only on auth rejection.
+        if (!isAuthRejection(err)) {
+          setStatus('authenticated');
+          return;
+        }
+        clearSession();
+        tokenRef.current = null;
         setToken(null);
         setUser(null);
         setStatus('unauthenticated');
       });
-  }, [api, socket, pathname]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api, socket]);
 
   const login = useCallback(
     async (email: string, password: string) => {
       const res = await api.login(email, password);
-      localStorage.setItem(TOKEN_KEY, res.token);
-      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      saveSession(res.token, res.user);
       tokenRef.current = res.token;
       setToken(res.token);
       setUser(res.user);
@@ -122,8 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearSession();
     tokenRef.current = null;
     setToken(null);
     setUser(null);

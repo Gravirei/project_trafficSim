@@ -2,11 +2,12 @@
 
 /**
  * Route gate. Redirects unauthenticated users to /login.
- * Renders nothing while auth state is still loading.
+ * Renders nothing while the persisted session is still hydrating.
  */
 import { ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import { hasStoredSession } from '@/lib/auth/session';
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
@@ -19,10 +20,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     }
   }, [status, router, pathname]);
 
-  if (status === 'idle' || status === 'loading') {
+  // Wait for session restore — do not bounce a refresh that still has a token.
+  if (status === 'idle') {
+    return null;
+  }
+  if (status === 'loading') {
     return null;
   }
   if (status === 'unauthenticated') {
+    // Brief window before provider hydrates: avoid a premature redirect.
+    if (typeof window !== 'undefined' && hasStoredSession()) return null;
     return null;
   }
   return <>{children}</>;

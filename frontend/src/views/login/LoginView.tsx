@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useRef } from 'react';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useViewController } from '@/hooks/useViewController';
@@ -20,6 +20,13 @@ export function LoginView() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // Persisted session: leave /login once auth restores.
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !user) return;
+    const next = new URLSearchParams(window.location.search).get('next') ?? '/dashboard';
+    router.replace(next);
+  }, [authStatus, user, router]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
