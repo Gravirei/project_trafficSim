@@ -16,7 +16,6 @@ describe('createViewManager', () => {
     expect(vm.getView()).toBe('dashboard');
     expect(document.body.dataset.view).toBe('dashboard');
     expect(nav.push).toHaveBeenCalledWith('/dashboard');
-    expect(window.location.hash).toBe('#dashboard');
     vm.destroy();
   });
 
@@ -28,7 +27,6 @@ describe('createViewManager', () => {
     vm.setView('dashboard');
     expect(vm.getView()).toBe('dashboard');
     expect(nav.push).toHaveBeenCalledWith('/dashboard');
-    expect(window.location.hash).toBe('#dashboard');
     vm.destroy();
   });
 
@@ -40,6 +38,18 @@ describe('createViewManager', () => {
     window.location.hash = '#dashboard';
     vm.routeHash();
     expect(vm.getView()).toBe('dashboard');
+    expect(nav.push).toHaveBeenCalledWith('/dashboard');
+    vm.destroy();
+  });
+
+  it('does not pollute history hash when entering dashboard from landing', () => {
+    window.location.hash = '';
+    const vm = createViewManager();
+    const nav = { push: vi.fn() };
+    vm.setNavigator(nav);
+
+    vm.showDashboard();
+    expect(window.location.hash).toBe('');
     expect(nav.push).toHaveBeenCalledWith('/dashboard');
     vm.destroy();
   });

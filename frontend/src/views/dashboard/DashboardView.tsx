@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft,
   Search,
   Bell,
   Map as LucideMap,
@@ -25,6 +24,7 @@ import { JUNCS, JUNCTION_IDS, fmtClock } from '@/lib/sim';
 import { useViewController } from '@/hooks/useViewController';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { NavBack } from '@/components/layout/NavBack';
 import { Panel, PanelHeader, Block } from '@/components/ui/Panel';
 import { useMapController } from '@/views/map/useMapController';
 import s from './dashboard.module.css';
@@ -227,13 +227,12 @@ export function DashboardView() {
     <div id="dashboard" className={s.dashboard}>
       {/* Topbar */}
       <header className={s.topbar}>
-        <button
+        <NavBack
           className={s.tbBtn}
-          onClick={() => showLanding()}
-          aria-label="Back to briefing"
-        >
-          <ArrowLeft size={14} strokeWidth={2} /> BRIEFING
-        </button>
+          label="BACK"
+          ariaLabel="Go back"
+          fallback={showLanding}
+        />
 
         <span className={s.tbTitle}>
           GREENWAVE · <b>OPS DASHBOARD</b>

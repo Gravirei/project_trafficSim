@@ -57,10 +57,11 @@ export function createViewManager(): ViewManager {
   }
 
   function replaceHash(h: string) {
-    if (location.hash !== h) {
-      hashLock = true;
-      location.hash = h;
-    }
+    // Intentionally a no-op for in-app navigation.
+    // Writing location.hash mutates the current history entry before
+    // router.push, so BACK lands on /#dashboard instead of /.
+    // Deep-link hashes are still handled in routeHash().
+    void h;
   }
 
   function routeHash(): void {

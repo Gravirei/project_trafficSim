@@ -3,8 +3,9 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
-import { ArrowLeft, Minus, Plus, Maximize, MapPin } from 'lucide-react';
+import { Minus, Plus, Maximize, MapPin } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { NavBack } from '@/components/layout/NavBack';
 import { useMapController, MapJunctionState } from './useMapController';
 import { MapJunctionList } from './MapJunctionList';
 import styles from './MapView.module.css';
@@ -24,13 +25,12 @@ export function MapView() {
   return (
     <div id="mapview" className={styles.mapview}>
       <header className={styles.topbar}>
-        <button
+        <NavBack
           className={styles.tbBtn}
-          onClick={() => showLanding()}
-          aria-label="Back to briefing (landing page)"
-        >
-          <ArrowLeft size={14} strokeWidth={2} /> BRIEFING
-        </button>
+          label="BACK"
+          ariaLabel="Go back"
+          fallback={showLanding}
+        />
         <span className={styles.tbTitle}>
           GREENWAVE · <b>NETWORK MAP</b> · SIGNALIZED SITES
         </span>

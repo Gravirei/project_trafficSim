@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Lock, Map } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lock, LogOut, Map } from 'lucide-react';
 import { useViewController } from '@/hooks/useViewController';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AnimatedSignal } from './AnimatedSignal';
 import { CycleBar } from './CycleBar';
@@ -56,8 +57,23 @@ const WHY_ROWS = [
 ];
 
 export function LandingView() {
-  const { enterJunction, showMap } = useViewController();
+  const { showMap, showDashboard } = useViewController();
+  const { user, status, logout } = useAuth();
   const [heroMode, setHeroMode] = useState<'signal' | 'login'>('signal');
+
+  const isAuthenticated = status === 'authenticated' && Boolean(user);
+
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      logout();
+      setHeroMode('signal');
+      return;
+    }
+    setHeroMode((m) => (m === 'signal' ? 'login' : 'signal'));
+  };
+
+  const enterControlCenter = () => showDashboard();
+
   return (
     <div id="landing" className="landing">
       <nav aria-label="Primary">
@@ -69,20 +85,42 @@ export function LandingView() {
           <a href="#why">Why It Matters</a>
         </div>
         <div className="actions">
+          {isAuthenticated && user ? (
+            <span className="sessChip" title={`Signed in as ${user.username} · ${user.role}`}>
+              {user.username.toUpperCase()} · {user.role}
+            </span>
+          ) : null}
           <button
             className="loginbtn"
-            onClick={() => setHeroMode((m) => (m === 'signal' ? 'login' : 'signal'))}
-            aria-pressed={heroMode === 'login'}
-            aria-label={heroMode === 'login' ? 'Back to traffic signal' : 'Open admin login form'}
-            title={heroMode === 'login' ? 'Back to traffic signal' : 'Admin login'}
+            onClick={handleAuthAction}
+            aria-pressed={!isAuthenticated && heroMode === 'login'}
+            aria-label={
+              isAuthenticated
+                ? 'Sign out'
+                : heroMode === 'login'
+                  ? 'Back to traffic signal'
+                  : 'Open admin login form'
+            }
+            title={isAuthenticated ? 'Sign out' : heroMode === 'login' ? 'Back to traffic signal' : 'Admin login'}
           >
-            {heroMode === 'login' ? <ArrowLeft size={14} strokeWidth={2} /> : <Lock size={14} strokeWidth={2} />}
-            {heroMode === 'login' ? 'BACK' : 'LOGIN'}
+            {isAuthenticated ? (
+              <>
+                <LogOut size={14} strokeWidth={2} /> LOGOUT
+              </>
+            ) : heroMode === 'login' ? (
+              <>
+                <ArrowLeft size={14} strokeWidth={2} /> BACK
+              </>
+            ) : (
+              <>
+                <Lock size={14} strokeWidth={2} /> LOGIN
+              </>
+            )}
           </button>
           <button className="ghostbtn" onClick={() => showMap()} aria-label="Open network map">
             NETWORK MAP
           </button>
-          <button className="enter" onClick={() => enterJunction('cross')} aria-label="Enter control center for Central Cross junction">
+          <button className="enter" onClick={enterControlCenter} aria-label="Open ops control center dashboard">
             ENTER CONTROL CENTER
           </button>
           <ThemeToggle />
@@ -97,7 +135,7 @@ export function LandingView() {
             A traffic signal is the most safety-critical machine most people touch every day. It takes a junction where paths <b>must</b> cross and separates them — not with barriers, but with <b>time</b>. GREENWAVE models the controllers behind that decision across a small network of four very different junctions — a cross, a roundabout, a Y and a T — each with its own live desk you can run.
           </p>
           <div className="ctaRow">
-            <button className="btnPrimary" onClick={() => enterJunction('cross')} aria-label="Enter the control center for Central Cross">
+            <button className="btnPrimary" onClick={enterControlCenter} aria-label="Enter the ops control center">
               ENTER THE CONTROL CENTER <ArrowRight size={14} strokeWidth={2} />
             </button>
             <button className="btnGhost" onClick={() => showMap()} aria-label="Open network map">
@@ -107,13 +145,17 @@ export function LandingView() {
           <div className="spec">4 JUNCTION SHAPES · LIVE NETWORK MAP · ACTUATED CONTROL · PEDESTRIAN CALLS · EMERGENCY PREEMPTION</div>
         </div>
         <div className="heroR">
-          {heroMode === 'signal' ? (
+          {heroMode === 'signal' && !isAuthenticated ? (
             <div key="signal" className="heroSlot heroSignal">
               <AnimatedSignal />
             </div>
-          ) : (
+          ) : heroMode === 'login' && !isAuthenticated ? (
             <div key="login" className="heroSlot heroLoginSlot">
               <HeroLoginForm />
+            </div>
+          ) : (
+            <div key="signal-auth" className="heroSlot heroSignal">
+              <AnimatedSignal />
             </div>
           )}
         </div>
@@ -152,7 +194,7 @@ export function LandingView() {
         <h2>The view from<br />the road.</h2>
         <div className="field">
           {FIGURES.map((f) => (
-            <figure key={f.n} className={`fig ${f.n}`}>
+            <figure className={`fig ${f.n}`} key={f.n}>
               <img
                 src={f.src}
                 alt={f.alt}
@@ -194,9 +236,9 @@ export function LandingView() {
 
       <section className="ctaband">
         <h2>Take the desk.</h2>
-        <p>Open the network map, pick a junction — cross, roundabout, Y or T — and run it live: random demand, actuated phasing, pedestrian calls, preemption and full telemetry, all in your browser.</p>
+        <p>Open the ops dashboard, pick a junction — cross, roundabout, Y or T — and run it live: random demand, actuated phasing, pedestrian calls, preemption and full telemetry, all in your browser.</p>
         <div className="ctaRow">
-          <button className="btnPrimary" onClick={() => enterJunction('cross')} aria-label="Enter the control center for Central Cross">
+          <button className="btnPrimary" onClick={enterControlCenter} aria-label="Enter the ops control center">
             ENTER THE CONTROL CENTER <ArrowRight size={14} strokeWidth={2} />
           </button>
           <button className="btnGhost" onClick={() => showMap()} aria-label="Open network map">
@@ -206,7 +248,7 @@ export function LandingView() {
       </section>
 
       <footer>
-        <span>GREENWAVE — single-file traffic control simulation</span>
+        <span>GREENWAVE — single-file traffic simulation</span>
         <span>no data leaves your browser · figures indicative</span>
       </footer>
     </div>

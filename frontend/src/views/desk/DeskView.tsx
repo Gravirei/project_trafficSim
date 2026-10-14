@@ -4,7 +4,7 @@ import { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 're
 import { useRouter } from 'next/navigation';
 import { useViewController } from '@/hooks/useViewController';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { ArrowLeft, Map as LucideMap, Pause, Play, RotateCcw } from 'lucide-react';
+import { Map as LucideMap, Pause, Play, RotateCcw } from 'lucide-react';
 import {
   JUNCS,
   SZ,
@@ -24,6 +24,7 @@ import {
 import { createSimSync, type SimSync } from '@/lib/sim/sync';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { NavBack } from '@/components/layout/NavBack';
 import type { SimState } from '@/lib/sim/types';
 import { ControlPanel } from './ControlPanel';
 import { Stage } from './Stage';
@@ -95,7 +96,7 @@ export function DeskView(props: { id: string }) {
 
 function DeskViewInner({ id }: { id: string }) {
   const router = useRouter();
-  const { showMap, showLanding } = useViewController();
+  const { showMap, showDashboard } = useViewController();
   const { theme } = useTheme();
   const { api, socket } = useAuth();
   const syncRef = useRef<SimSync | null>(null);
@@ -692,13 +693,12 @@ function DeskViewInner({ id }: { id: string }) {
         <pre id="bootTxt" ref={bootTxtRef} />
       </div>
       <header className={styles.topbar}>
-        <button
+        <NavBack
           className={styles.tbBtn}
-          onClick={() => showLanding()}
-          aria-label="Back to briefing (landing page)"
-        >
-          <ArrowLeft size={14} strokeWidth={2} /> BRIEFING
-        </button>
+          label="BACK"
+          ariaLabel="Go back"
+          fallback={showDashboard}
+        />
         <button className={styles.tbBtn} id="btnMap" onClick={() => showMap()} aria-label="Open network map">
           <LucideMap size={14} strokeWidth={2} /> MAP
         </button>

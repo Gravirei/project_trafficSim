@@ -2,10 +2,11 @@
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
+import { ArrowRight, AlertTriangle } from 'lucide-react';
 import { useViewController } from '@/hooks/useViewController';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { NavBack } from '@/components/layout/NavBack';
 import { useAuth } from '@/components/auth/AuthProvider';
 import './login.css';
 
@@ -60,14 +61,12 @@ export function LoginView() {
           GREEN<b>WAVE</b>
         </a>
         <div className="nav-actions">
-          <button
+          <NavBack
             className="back-link"
-            type="button"
-            onClick={() => showLanding()}
-            aria-label="Back to briefing"
-          >
-            <ArrowLeft size={14} strokeWidth={2} /> BACK TO BRIEFING
-          </button>
+            label="BACK"
+            ariaLabel="Go back"
+            fallback={showLanding}
+          />
           <ThemeToggle />
         </div>
       </nav>
