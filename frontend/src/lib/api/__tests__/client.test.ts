@@ -10,7 +10,7 @@ describe('createApi', () => {
     }) as unknown as typeof fetch;
   }
 
-  it('login sends username (derived from email) + email + password', async () => {
+  it('login sends email and password', async () => {
     let captured: { url: string; init: RequestInit } | null = null;
     const fetchImpl = (async (url: string, init: RequestInit) => {
       captured = { url, init };
@@ -20,11 +20,10 @@ describe('createApi', () => {
       });
     }) as unknown as typeof fetch;
     const api = createApi({ baseUrl: 'http://x', getToken: () => null, fetchImpl });
-    await api.login('admin@gravirei.com', 'pw');
+    await api.login('admin_auth@gravirei.com', 'pw');
     expect(captured!.url).toBe('http://x/api/auth/login');
     expect(JSON.parse(captured!.init.body as string)).toEqual({
-      username: 'admin',
-      email: 'admin@gravirei.com',
+      email: 'admin_auth@gravirei.com',
       password: 'pw',
     });
   });

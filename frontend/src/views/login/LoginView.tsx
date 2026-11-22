@@ -77,8 +77,8 @@ export function LoginView() {
             <div className="auth-eyebrow">GREENWAVE · ADMIN ACCESS</div>
             <h1>Operator sign-in</h1>
             <p className="auth-sub">
-              Authenticate to enter the control desk. Real auth is wired to the
-              backend; use <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
+              Sign in with the administrator email and password configured for
+              this deployment.
             </p>
           </div>
 
@@ -90,7 +90,7 @@ export function LoginView() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                placeholder="admin@gravirei.com"
+                placeholder="admin_auth@gravirei.com"
                 aria-label="Email"
                 required
               />

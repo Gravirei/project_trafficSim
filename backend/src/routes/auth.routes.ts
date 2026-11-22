@@ -12,7 +12,6 @@ import { env } from '../config/env';
 const router = Router();
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'Username required'),
   email: z.string().email().endsWith('@gravirei.com', 'Only @gravirei.com emails allowed'),
   password: z.string().min(1, 'Password required'),
 });
@@ -37,10 +36,10 @@ router.post(
   loginRateLimiter,
   validate({ body: loginSchema }),
   asyncHandler(async (req: Request, res: Response) => {
-    const { username, email, password } = req.body as z.infer<typeof loginSchema>;
+    const { email, password } = req.body as z.infer<typeof loginSchema>;
 
-    const user = await UserModel.findByUsername(username);
-    if (!user || user.email !== email) {
+    const user = await UserModel.findByEmail(email);
+    if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }

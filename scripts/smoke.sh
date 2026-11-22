@@ -6,8 +6,12 @@
 set -euo pipefail
 
 API="${API:-http://localhost:3001}"
-EMAIL="${EMAIL:-admin@gravirei.com}"
-PASSWORD="${PASSWORD:-Admin@123!}"
+EMAIL="${EMAIL:-admin_auth@gravirei.com}"
+PASSWORD="${PASSWORD:-${ADMIN_PASSWORD:-}}"
+if [ -z "$PASSWORD" ]; then
+  echo "Set PASSWORD or ADMIN_PASSWORD to the configured admin password" >&2
+  exit 1
+fi
 
 echo "→ health check"
 curl -fsS "$API/api/health" >/dev/null
@@ -15,7 +19,7 @@ curl -fsS "$API/api/health" >/dev/null
 echo "→ login as $EMAIL"
 TOKEN=$(curl -fsS -X POST "$API/api/auth/login" \
   -H 'Content-Type: application/json' \
-  -d "{\"username\":\"${EMAIL%%@*}\",\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
   | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
 
 echo "→ /api/auth/me"

@@ -8,8 +8,7 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Default admin user. password_hash is a placeholder; the migration runner
--- will overwrite it with a bcrypt hash of process.env.ADMIN_PASSWORD
--- (default: Admin@123!) immediately after this migration is applied.
+-- requires ADMIN_PASSWORD and replaces this with its bcrypt hash.
 INSERT INTO users (username, email, password_hash, role) VALUES
     ('admin', 'admin_auth@gravirei.com', '!seed-placeholder-replaced-by-runner', 'ADMIN')
 ON CONFLICT (username) DO NOTHING;

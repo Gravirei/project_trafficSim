@@ -16,7 +16,6 @@ const MIGRATIONS_TABLE_DDL = `
 const migrationsDir = path.resolve(__dirname, '../../database/migrations');
 
 const ADMIN_USERNAME = 'admin';
-const DEFAULT_ADMIN_PASSWORD = 'Admin@123!';
 
 function isMigrationFile(name: string): boolean {
   return /^V\d+__.*\.sql$/i.test(name);
@@ -44,7 +43,11 @@ async function listMigrationFiles(): Promise<string[]> {
 }
 
 async function applySeedAdminPassword(client: PoolClient): Promise<void> {
-  const password = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    throw new Error('ADMIN_PASSWORD must be set before applying admin seed migrations');
+  }
+
   const hash = await bcrypt.hash(password, 10);
   const result = await client.query(
     `UPDATE users
@@ -55,7 +58,7 @@ async function applySeedAdminPassword(client: PoolClient): Promise<void> {
   if (result.rowCount && result.rowCount > 0) {
     logger.info(
       { username: ADMIN_USERNAME },
-      'Updated default admin password from ADMIN_PASSWORD env'
+      'Updated seeded admin password from ADMIN_PASSWORD env'
     );
   }
 }
@@ -86,8 +89,8 @@ export async function runMigrations(): Promise<{ applied: string[]; skipped: num
       try {
         await client.query(sql);
 
-        // Post-process seed files: replace admin password placeholder with
-        // a real bcrypt hash derived from ADMIN_PASSWORD (default: Admin@123!).
+        // Post-process seed files: replace the admin password placeholder with
+        // a bcrypt hash from the explicitly configured ADMIN_PASSWORD.
         if (isSeedFile(fileName)) {
           await applySeedAdminPassword(client);
         }

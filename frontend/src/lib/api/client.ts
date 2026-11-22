@@ -73,14 +73,7 @@ export function createApi(opts: ApiClientOptions): ApiClient {
 
   return {
     login: (email, password) => {
-      // Backend login schema requires {username, email, password}; derive
-      // username from the email local part so callers only need credentials.
-      const username = email.split('@')[0];
-      return call<ApiLoginResponse>('POST', '/api/auth/login', {
-        username,
-        email,
-        password,
-      });
+      return call<ApiLoginResponse>('POST', '/api/auth/login', { email, password });
     },
     me: () => call<{ user: ApiUser }>('GET', '/api/auth/me'),
     getJunctions: async () => {

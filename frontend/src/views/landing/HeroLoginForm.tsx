@@ -44,8 +44,8 @@ export function HeroLoginForm() {
         <div className="hero-login-eyebrow">ADMIN ACCESS</div>
         <h2>Operator sign-in</h2>
         <p>
-          Authenticate to enter the control desk. Real auth is wired to the
-          backend; use <code>admin@gravirei.com</code> / <code>Admin@123!</code>.
+          Sign in with the administrator email and password configured for
+          this deployment.
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export function HeroLoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
-          placeholder="admin@gravirei.com"
+          placeholder="admin_auth@gravirei.com"
           required
         />
       </label>

@@ -70,9 +70,11 @@ See `INDUSTRY_STANDARD_PLAN.md` for the full transformation audit and phased pla
 
 ```bash
 # 1. Configure env (all platforms: copy example, no shell-specific syntax)
-#    Windows (PowerShell/CMD):  copy backend\.env.example backend\.env
-#    macOS/Linux:               cp backend/.env.example backend/.env
-cp backend/.env.example backend/.env   # set JWT_SECRET (min 32 chars) — required
+#    Windows (PowerShell/CMD):  copy .env.example .env
+#                               copy backend\.env.example backend\.env
+#    macOS/Linux:               cp .env.example .env && cp backend/.env.example backend/.env
+cp .env.example .env                         # set JWT_SECRET
+cp backend/.env.example backend/.env          # set ADMIN_PASSWORD before first start
 cp frontend/.env.example frontend/.env.local
 
 # 2. Start full stack (needs Docker Desktop / Engine running)
@@ -94,6 +96,9 @@ Works the same on **Windows (PowerShell/CMD), macOS, Linux** — no `PGPASSWORD`
 # 1. Database only (requires Docker)
 npm run db:up          # cross-platform: docker compose -f postgres-setup/docker-compose.yml up -d
 # Alternative full-stack wait: npm run db:up:wait
+
+# Configure backend/.env from backend/.env.example and set JWT_SECRET and
+# ADMIN_PASSWORD before the first migration.
 
 # 2. Backend — cross-platform DB setup (no `psql` CLI needed)
 npm run db:setup --workspace=backend   # runs node scripts/db-setup.mjs via pg (Windows/macOS/Linux)
@@ -150,20 +155,23 @@ npm run dev:docker:down   # docker compose down
 
 | Var                               | Required  | Default                     | Description                       |
 | --------------------------------- | --------- | --------------------------- | --------------------------------- |
-| `JWT_SECRET`                      | ✅ (prod) | —                           | Min 32 chars, no fallback in prod |
+| `JWT_SECRET`                      | ✅        | —                           | Set a random secret of at least 32 characters |
+| `ADMIN_PASSWORD`                  | ✅ (first migration) | —                | Unique initial admin password; set before first migration |
 | `CORS_ORIGIN`                     | —         | `http://localhost:3000`     | Comma-separated allowlist         |
 | `DB_HOST/PORT/USER/PASSWORD/NAME` | —         | `localhost:5432/admin/mydb` | Postgres                          |
 | `NEXT_PUBLIC_API_URL`             | —         | `http://localhost:3001`     | Frontend API base                 |
 
 See `backend/.env.example` and `frontend/.env.example`.
 
-## Default Credentials (seed)
+## Initial Admin Account
 
-| Username | Email                     | Password           | Role  |
-| -------- | ------------------------- | ------------------ | ----- |
-| `admin`  | `admin_auth@gravirei.com` | `Tr4ff1cS1m@2026!` | Admin |
+| Username | Email                     | Password |
+| -------- | ------------------------- | -------- |
+| `admin`  | `admin_auth@gravirei.com` | Set `ADMIN_PASSWORD` in the backend environment before starting the migrations |
 
-> Change the admin password after first login. Seed hash is in `backend/database/seed.sql`.
+The migrations hash this value and never store it in the seed SQL. For an existing
+installation, set `ADMIN_PASSWORD` before the next startup so migration V007 can
+replace the seeded admin password once.
 
 ## API Overview
 

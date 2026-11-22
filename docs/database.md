@@ -11,6 +11,11 @@ backend/database/
   migrations/
     V001__initial_schema.sql      # core tables + indexes
     V002__seed_signals.sql        # default 4-way intersection + admin user
+    V003__junction_definitions.sql
+    V004__phase_durations.sql
+    V005__event_preempt_ped_log.sql
+    V006__seed_junctions.sql      # default junction definitions
+    V007__seed_admin_password.sql # one-time admin password reset for upgrades
   schema.sql -> migrations/V001__initial_schema.sql  # legacy symlink
   seed.sql   -> migrations/V002__seed_signals.sql    # legacy symlink
 ```
@@ -29,9 +34,9 @@ Files follow the pattern `V###__description.sql`:
 
 To keep ordering stable, always use a higher number than the latest existing
 migration. Files that contain the word `seed` (case-insensitive) are treated
-as seed migrations: the runner will bcrypt-hash `process.env.ADMIN_PASSWORD`
-(default `Admin@123!`) and update the `admin` user's `password_hash`
-immediately after the seed SQL runs.
+as seed migrations: the runner requires `ADMIN_PASSWORD`, bcrypt-hashes it,
+and updates the `admin` user's `password_hash` after the seed SQL runs. There
+is no built-in password.
 
 ## Tracking table
 
@@ -73,7 +78,7 @@ the same idempotency guarantees.
 
 ## Local admin password
 
-`ADMIN_PASSWORD` env var controls the default `admin` user's password.
-Default is `Admin@123!` (the migration runner bcrypt-hashes it at apply
-time). Set it in `backend/.env` or your shell before first boot, or update
-the password directly via the API after the user is created.
+`ADMIN_PASSWORD` controls the seeded `admin` user's password. Set a unique value
+in `backend/.env` before first boot. Migration V007 also applies this configured
+password once to existing installations; later changes to the environment
+variable do not rotate an already-migrated account.
